@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reclaim - Mental Health & Wellness</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Reclaim</h1>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#mood">Mood Tracker</a></li>
+                <li><a href="habits.html">Habits</a></li>
+                <li><a href="#resources">Resources</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h2>Reclaim Your Wellness</h2>
+                <p>Track your mood, build healthy habits, and access support resources designed for university students.</p>
+            </div>
+        </section>
+
+        <!-- Mood Tracker Section -->
+        <section id="mood" class="section mood-section">
+            <div class="mood-header">
+                <h2>How are you feeling today?</h2>
+                <p class="mood-subtitle">Track your daily mood to understand your wellness patterns</p>
+            </div>
+
+            <div class="mood-tracker-card">
+                <div class="mood-selector">
+                    <button class="mood-btn" data-mood="great" data-emoji="😊">
+                        <span class="mood-emoji">😊</span>
+                        <span class="mood-label">Great</span>
+                    </button>
+                    <button class="mood-btn" data-mood="good" data-emoji="🙂">
+                        <span class="mood-emoji">🙂</span>
+                        <span class="mood-label">Good</span>
+                    </button>
+                    <button class="mood-btn" data-mood="okay" data-emoji="😐">
+                        <span class="mood-emoji">😐</span>
+                        <span class="mood-label">Okay</span>
+                    </button>
+                    <button class="mood-btn" data-mood="bad" data-emoji="😟">
+                        <span class="mood-emoji">😟</span>
+                        <span class="mood-label">Not Good</span>
+                    </button>
+                    <button class="mood-btn" data-mood="terrible" data-emoji="😢">
+                        <span class="mood-emoji">😢</span>
+                        <span class="mood-label">Terrible</span>
+                    </button>
+                </div>
+
+                <div class="mood-notes-section">
+                    <label for="moodNotes" class="mood-notes-label">Add a note (optional)</label>
+                    <textarea id="moodNotes" class="mood-notes-input" placeholder="What's on your mind today?" rows="3"></textarea>
+                </div>
+
+                <button id="saveMoodBtn" class="btn btn-primary btn-save-mood" disabled>Save Mood Entry</button>
+
+                <div id="mood-message" class="mood-message"></div>
+            </div>
+
+            <div class="mood-history-section">
+                <h3>Recent Mood Entries</h3>
+                <div id="moodHistory" class="mood-history-grid">
+                    <!-- Mood history will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="section">
+            <h2>Support Resources</h2>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h3>YFS Health Services</h3>
+                    <p>York Federation of Students offers confidential health and wellness support.</p>
+                    <a href="#" class="btn">Learn More</a>
+                </div>
+                <div class="resource-card">
+                    <h3>Crisis Support</h3>
+                    <p>24/7 crisis support line available for immediate help.</p>
+                    <a href="#" class="btn">Get Help</a>
+                </div>
+                <div class="resource-card">
+                    <h3>Counselling Services</h3>
+                    <p>Professional counselling services available to all students.</p>
+                    <a href="#" class="btn">Book Session</a>
+                </div>
+                <div class="resource-card">
+                    <h3>Wellness Workshops</h3>
+                    <p>Join workshops on stress management, time management, and more.</p>
+                    <a href="#" class="btn">View Schedule</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
