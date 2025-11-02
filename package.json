@@ -1,0 +1,16 @@
+{
+  "name": "reclaim",
+  "version": "1.0.0",
+  "description": "A web application to help university students improve mental health and wellness",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["mental-health", "wellness", "students"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
