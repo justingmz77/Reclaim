@@ -1,7 +1,36 @@
-// Mood Tracker
+// Mood Tracker with localStorage
+const MOOD_STORAGE_KEY = 'reclaim_mood_entries';
+
+// Get all mood entries from localStorage
+function getMoodEntries() {
+    return JSON.parse(localStorage.getItem(MOOD_STORAGE_KEY) || '[]');
+}
+
+// Save mood entries to localStorage
+function saveMoodEntries(entries) {
+    localStorage.setItem(MOOD_STORAGE_KEY, JSON.stringify(entries));
+}
+
+// Get today's date string
+function getTodayDateString() {
+    return new Date().toISOString().split('T')[0];
+}
+
+// Format date for display
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Mood Tracker functionality
 const moodButtons = document.querySelectorAll('.mood-btn');
 const moodMessage = document.getElementById('mood-message');
+const moodNotesInput = document.getElementById('moodNotes');
+const saveMoodBtn = document.getElementById('saveMoodBtn');
+let selectedMood = null;
 
+// Enable/disable save button based on mood selection
 moodButtons.forEach(button => {
     button.addEventListener('click', () => {
         // Remove active class from all buttons
@@ -10,50 +39,135 @@ moodButtons.forEach(button => {
         // Add active class to clicked button
         button.classList.add('active');
 
-        // Get mood value
-        const mood = button.dataset.mood;
+        // Store selected mood
+        selectedMood = button.dataset.mood;
 
-        // Display message based on mood
-        const messages = {
-            great: "That's wonderful! Keep up the positive energy!",
-            good: "Great to hear! Remember to take care of yourself.",
-            okay: "Every day is different. Consider doing something you enjoy today.",
-            bad: "Sorry you're feeling down. Remember, support is available if you need it.",
-            terrible: "We're here for you. Please consider reaching out to a counselor or using our crisis support."
-        };
+        // Enable save button
+        saveMoodBtn.disabled = false;
 
-        moodMessage.textContent = messages[mood];
-
-        // Store mood in localStorage (basic tracking)
-        const today = new Date().toDateString();
-        localStorage.setItem(`mood_${today}`, mood);
+        // Clear any previous message
+        moodMessage.classList.remove('show');
     });
 });
 
+// Save mood entry
+saveMoodBtn.addEventListener('click', () => {
+    if (!selectedMood) return;
+
+    const today = getTodayDateString();
+    const emoji = document.querySelector(`.mood-btn[data-mood="${selectedMood}"]`).dataset.emoji;
+    const note = moodNotesInput.value.trim();
+
+    // Get existing entries
+    const entries = getMoodEntries();
+
+    // Check if there's already an entry for today
+    const existingIndex = entries.findIndex(entry => entry.date === today);
+
+    const newEntry = {
+        date: today,
+        mood: selectedMood,
+        emoji: emoji,
+        note: note,
+        timestamp: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+        // Update existing entry
+        entries[existingIndex] = newEntry;
+    } else {
+        // Add new entry
+        entries.unshift(newEntry);
+    }
+
+    // Keep only last 30 entries
+    if (entries.length > 30) {
+        entries.splice(30);
+    }
+
+    // Save to localStorage
+    saveMoodEntries(entries);
+
+    // Show success message
+    const moodLabels = {
+        great: 'Great',
+        good: 'Good',
+        okay: 'Okay',
+        bad: 'Not Good',
+        terrible: 'Terrible'
+    };
+
+    moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
+    moodMessage.classList.add('show');
+
+    // Reset form
+    setTimeout(() => {
+        moodMessage.classList.remove('show');
+    }, 3000);
+
+    // Render updated history
+    renderMoodHistory();
+});
+
+// Render mood history
+function renderMoodHistory() {
+    const historyContainer = document.getElementById('moodHistory');
+    const entries = getMoodEntries();
+
+    if (entries.length === 0) {
+        historyContainer.innerHTML = '<div class="no-mood-history">No mood entries yet. Start tracking your mood today!</div>';
+        return;
+    }
+
+    // Show last 6 entries
+    const recentEntries = entries.slice(0, 6);
+
+    historyContainer.innerHTML = recentEntries.map(entry => {
+        const moodLabels = {
+            great: 'Great',
+            good: 'Good',
+            okay: 'Okay',
+            bad: 'Not Good',
+            terrible: 'Terrible'
+        };
+
+        return `
+            <div class="mood-history-item">
+                <div class="mood-history-date">${formatDate(entry.date)}</div>
+                <div class="mood-history-mood">
+                    <span class="mood-history-mood-emoji">${entry.emoji}</span>
+                    <span>${moodLabels[entry.mood]}</span>
+                </div>
+                ${entry.note ? `<div class="mood-history-note">"${entry.note}"</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
 // Load today's mood if already set
-const today = new Date().toDateString();
-const savedMood = localStorage.getItem(`mood_${today}`);
-if (savedMood) {
-    const savedButton = document.querySelector(`[data-mood="${savedMood}"]`);
-    if (savedButton) {
-        savedButton.classList.add('active');
+function loadTodaysMood() {
+    const today = getTodayDateString();
+    const entries = getMoodEntries();
+    const todayEntry = entries.find(entry => entry.date === today);
+
+    if (todayEntry) {
+        const savedButton = document.querySelector(`[data-mood="${todayEntry.mood}"]`);
+        if (savedButton) {
+            savedButton.classList.add('active');
+            selectedMood = todayEntry.mood;
+            saveMoodBtn.disabled = false;
+        }
+
+        if (todayEntry.note) {
+            moodNotesInput.value = todayEntry.note;
+        }
     }
 }
 
-// Habit Checkboxes
-const habitCheckboxes = document.querySelectorAll('.habit-item input[type="checkbox"]');
-
-habitCheckboxes.forEach(checkbox => {
-    // Load saved state
-    const savedState = localStorage.getItem(`habit_${checkbox.id}_${today}`);
-    if (savedState === 'true') {
-        checkbox.checked = true;
-    }
-
-    // Save state on change
-    checkbox.addEventListener('change', () => {
-        localStorage.setItem(`habit_${checkbox.id}_${today}`, checkbox.checked);
-    });
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadTodaysMood();
+    renderMoodHistory();
 });
 
 // Smooth scrolling for navigation
