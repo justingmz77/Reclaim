@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     "What’s one thing you want to focus on or improve tomorrow?"
   ];
 
-  // NEW: Try to load admin-managed prompts; fall back to originals above.
   // Does not modify or remove your original constants; we use separate "active" vars.
   let activePromptButtonTitles = promptButtonTitles;
   let activePromptTexts = promptTexts;
