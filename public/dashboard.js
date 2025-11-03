@@ -16,7 +16,7 @@ async function checkAuth() {
 }
 
 // Logout handler
-document.getElementById('logoutLink').addEventListener('click', async (e) => {
+document.getElementById('logoutLink')?.addEventListener('click', async (e) => {
     e.preventDefault();
     
     try {
@@ -53,6 +53,12 @@ async function loadDashboard() {
     
     // Display user email
     document.getElementById('userEmail').textContent = user.email;
+
+    // Admin-only: reveal Manage Content card
+    if (window.userDataManager?.isAdmin(user)) {
+        const adminCard = document.getElementById('adminManageCard');
+        if (adminCard) adminCard.style.display = 'flex';
+    }
     
     // Load mood entries count (user-specific)
     const moodStorageKey = window.userDataManager.getUserStorageKey('reclaim_mood_entries', user.id);
@@ -74,4 +80,3 @@ async function loadDashboard() {
 
 // Initialize dashboard
 window.addEventListener('DOMContentLoaded', loadDashboard);
-

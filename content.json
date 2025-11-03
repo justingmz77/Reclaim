@@ -1,0 +1,11 @@
+{
+    "prompts": [
+      { "id": "p1", "title": "Self-Reflection 🪞", "text": "What emotion stood out to you today? Why?" },
+      { "id": "p2", "title": "Gratitude 🌤️", "text": "List one thing you’re grateful for today." },
+      { "id": "p3", "title": "Growth or Challenge 💪", "text": "What challenged you today, and what did you learn?" },
+      { "id": "p4", "title": "Intention for Tomorrow 🌱", "text": "What’s one thing to focus on tomorrow?" }
+    ],
+    "games": [],
+    "exercises": []
+  }
+  

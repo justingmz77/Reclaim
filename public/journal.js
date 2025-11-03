@@ -28,6 +28,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     "What’s one thing you want to focus on or improve tomorrow?"
   ];
 
+  // Does not modify or remove your original constants; we use separate "active" vars.
+  let activePromptButtonTitles = promptButtonTitles;
+  let activePromptTexts = promptTexts;
+
+  try {
+    const res = await fetch('/api/content', { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.prompts) && data.prompts.length > 0) {
+        const managedTitles = [];
+        const managedTexts = [];
+        data.prompts.forEach(p => {
+          if (p && typeof p.title === 'string' && typeof p.text === 'string') {
+            managedTitles.push(p.title);
+            managedTexts.push(p.text);
+          }
+        });
+        if (managedTitles.length > 0 && managedTexts.length > 0) {
+          activePromptButtonTitles = managedTitles;
+          activePromptTexts = managedTexts;
+        }
+      }
+    }
+    // silently ignore failures and keep defaults
+  } catch (_) {
+    // no-op, keep defaults
+  }
+
   async function updateJournalHistory() {
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {
@@ -66,9 +94,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     promptsContainer.style.gap = "10px";
     promptsContainer.style.marginBottom = "20px";
 
-    promptTexts.forEach((text, index) => {
+    activePromptTexts.forEach((text, index) => {
       const promptBtn = document.createElement("button");
-      promptBtn.textContent = promptButtonTitles[index];
+      promptBtn.textContent = activePromptButtonTitles[index] ?? `Prompt ${index + 1}`;
       promptBtn.classList.add("mood-btn");
       promptBtn.style.flex = "1";
       promptBtn.style.minWidth = "200px";
