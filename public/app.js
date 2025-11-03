@@ -1,14 +1,25 @@
 // Mood Tracker with localStorage
 const MOOD_STORAGE_KEY = 'reclaim_mood_entries';
 
-// Get all mood entries from localStorage
-function getMoodEntries() {
-    return JSON.parse(localStorage.getItem(MOOD_STORAGE_KEY) || '[]');
+// Get all mood entries from localStorage (user-specific)
+async function getMoodEntries() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        return []; // Return empty if not logged in
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(MOOD_STORAGE_KEY, user.id);
+    return JSON.parse(localStorage.getItem(storageKey) || '[]');
 }
 
-// Save mood entries to localStorage
-function saveMoodEntries(entries) {
-    localStorage.setItem(MOOD_STORAGE_KEY, JSON.stringify(entries));
+// Save mood entries to localStorage (user-specific)
+async function saveMoodEntries(entries) {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        console.error('Cannot save mood entries: User not authenticated');
+        return;
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(MOOD_STORAGE_KEY, user.id);
+    localStorage.setItem(storageKey, JSON.stringify(entries));
 }
 
 // Get today's date string
@@ -51,15 +62,19 @@ moodButtons.forEach(button => {
 });
 
 // Save mood entry
-saveMoodBtn.addEventListener('click', () => {
+saveMoodBtn.addEventListener('click', async () => {
     if (!selectedMood) return;
+
+    // Check authentication
+    const user = await window.userDataManager?.requireAuth();
+    if (!user) return;
 
     const today = getTodayDateString();
     const emoji = document.querySelector(`.mood-btn[data-mood="${selectedMood}"]`).dataset.emoji;
     const note = moodNotesInput.value.trim();
 
     // Get existing entries
-    const entries = getMoodEntries();
+    const entries = await getMoodEntries();
 
     // Check if there's already an entry for today
     const existingIndex = entries.findIndex(entry => entry.date === today);
@@ -86,7 +101,7 @@ saveMoodBtn.addEventListener('click', () => {
     }
 
     // Save to localStorage
-    saveMoodEntries(entries);
+    await saveMoodEntries(entries);
 
     // Show success message
     const moodLabels = {
@@ -106,13 +121,22 @@ saveMoodBtn.addEventListener('click', () => {
     }, 3000);
 
     // Render updated history
-    renderMoodHistory();
+    await renderMoodHistory();
 });
 
 // Render mood history
-function renderMoodHistory() {
+async function renderMoodHistory() {
     const historyContainer = document.getElementById('moodHistory');
-    const entries = getMoodEntries();
+    if (!historyContainer) return;
+    
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your mood entries.</div>';
+        return;
+    }
+    
+    const entries = await getMoodEntries();
 
     if (entries.length === 0) {
         historyContainer.innerHTML = '<div class="no-mood-history">No mood entries yet. Start tracking your mood today!</div>';
@@ -145,9 +169,12 @@ function renderMoodHistory() {
 }
 
 // Load today's mood if already set
-function loadTodaysMood() {
+async function loadTodaysMood() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) return; // Don't load if not logged in
+    
     const today = getTodayDateString();
-    const entries = getMoodEntries();
+    const entries = await getMoodEntries();
     const todayEntry = entries.find(entry => entry.date === today);
 
     if (todayEntry) {
@@ -158,16 +185,26 @@ function loadTodaysMood() {
             saveMoodBtn.disabled = false;
         }
 
-        if (todayEntry.note) {
+        if (todayEntry.note && moodNotesInput) {
             moodNotesInput.value = todayEntry.note;
         }
     }
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadTodaysMood();
-    renderMoodHistory();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if user is logged in before loading data
+    const user = await window.userDataManager?.getCurrentUser();
+    if (user) {
+        await loadTodaysMood();
+        await renderMoodHistory();
+    } else {
+        // Show message that user needs to log in
+        const historyContainer = document.getElementById('moodHistory');
+        if (historyContainer) {
+            historyContainer.innerHTML = '<div class="no-mood-history">Please <a href="login.html">log in</a> to track your mood.</div>';
+        }
+    }
 });
 
 // Smooth scrolling for navigation

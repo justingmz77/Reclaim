@@ -1,4 +1,8 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Check authentication first
+  const user = await window.userDataManager?.requireAuth();
+  if (!user) return; // Will redirect to login if not authenticated
+
   const guidedJournalBtn = document.getElementById("guidedBtn");
   const freeJournalBtn = document.getElementById("freeBtn");
   const promptsContainer = document.getElementById("guidedPrompts");
@@ -24,9 +28,21 @@ document.addEventListener("DOMContentLoaded", () => {
     "What’s one thing you want to focus on or improve tomorrow?"
   ];
 
-  function updateJournalHistory() {
-    const entries = JSON.parse(localStorage.getItem("journalEntries") || "[]");
+  async function updateJournalHistory() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+      historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your journal entries.</div>';
+      return;
+    }
+    
+    const storageKey = window.userDataManager.getUserStorageKey("journalEntries", user.id);
+    const entries = JSON.parse(localStorage.getItem(storageKey) || "[]");
     historyContainer.innerHTML = "";
+
+    if (entries.length === 0) {
+      historyContainer.innerHTML = '<div class="no-mood-history">No journal entries yet. Start writing!</div>';
+      return;
+    }
 
     entries.forEach(entry => {
       const card = document.createElement("div");
@@ -81,14 +97,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", async () => {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+      window.location.href = '/login.html';
+      return;
+    }
+
     const title = journalTitleInput.value.trim() || "Untitled";
     const content = journalTextarea.value.trim();
     if (!content) return;
 
-    const entries = JSON.parse(localStorage.getItem("journalEntries") || "[]");
+    const storageKey = window.userDataManager.getUserStorageKey("journalEntries", user.id);
+    const entries = JSON.parse(localStorage.getItem(storageKey) || "[]");
     entries.unshift({ title, content, date: new Date().toLocaleString() });
-    localStorage.setItem("journalEntries", JSON.stringify(entries));
+    localStorage.setItem(storageKey, JSON.stringify(entries));
 
     journalTextarea.value = "";
     journalTitleInput.value = "";

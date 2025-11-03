@@ -11,13 +11,17 @@ const STORAGE_KEYS = {
 };
 
 // Audit logging for NFR-002 compliance
-function logAction(action, details) {
-    const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOG) || '[]');
+async function logAction(action, details) {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) return; // Don't log if not authenticated
+    
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.AUDIT_LOG, user.id);
+    const logs = JSON.parse(localStorage.getItem(storageKey) || '[]');
     const logEntry = {
         timestamp: new Date().toISOString(),
         action: action,
         details: details,
-        userId: 'current_user' // Will be replaced with actual user ID when auth is implemented
+        userId: user.id
     };
 
     logs.push(logEntry);
@@ -27,7 +31,7 @@ function logAction(action, details) {
     cutoffDate.setDate(cutoffDate.getDate() - 180);
     const filteredLogs = logs.filter(log => new Date(log.timestamp) > cutoffDate);
 
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOG, JSON.stringify(filteredLogs));
+    localStorage.setItem(storageKey, JSON.stringify(filteredLogs));
 }
 
 // Habit class
@@ -45,25 +49,47 @@ class Habit {
     }
 }
 
-// Get habits from localStorage
-function getHabits() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.HABITS) || '[]');
+// Get habits from localStorage (user-specific)
+async function getHabits() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        return []; // Return empty if not logged in
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.HABITS, user.id);
+    return JSON.parse(localStorage.getItem(storageKey) || '[]');
 }
 
-// Save habits to localStorage
-function saveHabits(habits) {
-    localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(habits));
+// Save habits to localStorage (user-specific)
+async function saveHabits(habits) {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        console.error('Cannot save habits: User not authenticated');
+        return;
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.HABITS, user.id);
+    localStorage.setItem(storageKey, JSON.stringify(habits));
     logAction('HABITS_UPDATED', { count: habits.length });
 }
 
-// Get completed habits from localStorage
-function getCompletedHabits() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMPLETED_HABITS) || '[]');
+// Get completed habits from localStorage (user-specific)
+async function getCompletedHabits() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        return {}; // Return empty if not logged in
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.COMPLETED_HABITS, user.id);
+    return JSON.parse(localStorage.getItem(storageKey) || '{}');
 }
 
-// Save completed habits to localStorage
-function saveCompletedHabits(habits) {
-    localStorage.setItem(STORAGE_KEYS.COMPLETED_HABITS, JSON.stringify(habits));
+// Save completed habits to localStorage (user-specific)
+async function saveCompletedHabits(habits) {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        console.error('Cannot save completed habits: User not authenticated');
+        return;
+    }
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.COMPLETED_HABITS, user.id);
+    localStorage.setItem(storageKey, JSON.stringify(habits));
 }
 
 // Calculate streak for a habit
@@ -98,8 +124,8 @@ function calculateStreak(habit) {
 }
 
 // Mark habit as completed for today
-function markHabitComplete(habitId) {
-    const habits = getHabits();
+async function markHabitComplete(habitId) {
+    const habits = await getHabits();
     const habit = habits.find(h => h.id === habitId);
 
     if (!habit) return;
@@ -116,14 +142,14 @@ function markHabitComplete(habitId) {
         habit.lastCompletedDate = today;
         habit.streak = calculateStreak(habit);
 
-        saveHabits(habits);
-        logAction('HABIT_COMPLETED', { habitId, habitName: habit.name, streak: habit.streak });
+        await saveHabits(habits);
+        await logAction('HABIT_COMPLETED', { habitId, habitName: habit.name, streak: habit.streak });
 
         // Check for streak rewards (Use Case 8)
         checkStreakRewards(habit);
 
-        renderHabits();
-        renderStreaks();
+        await renderHabits();
+        await renderStreaks();
     }
 }
 
@@ -162,8 +188,8 @@ function showRewardNotification(habit) {
 }
 
 // Mark habit as done (status change)
-function markHabitDone(habitId) {
-    const habits = getHabits();
+async function markHabitDone(habitId) {
+    const habits = await getHabits();
     const habitIndex = habits.findIndex(h => h.id === habitId);
 
     if (habitIndex === -1) return;
@@ -172,45 +198,45 @@ function markHabitDone(habitId) {
     habit.status = 'done';
 
     // Move to completed habits
-    const completedHabits = getCompletedHabits();
+    const completedHabits = await getCompletedHabits();
     completedHabits.push(habit);
-    saveCompletedHabits(completedHabits);
+    await saveCompletedHabits(completedHabits);
 
     // Remove from current habits
     habits.splice(habitIndex, 1);
-    saveHabits(habits);
+    await saveHabits(habits);
 
-    logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
+    await logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
 
-    renderHabits();
+    await renderHabits();
 }
 
 // Delete habit
-function deleteHabit(habitId, isCompleted = false) {
+async function deleteHabit(habitId, isCompleted = false) {
     if (!confirm('Are you sure you want to delete this habit?')) return;
 
     if (isCompleted) {
-        const completedHabits = getCompletedHabits();
+        const completedHabits = await getCompletedHabits();
         const habit = completedHabits.find(h => h.id === habitId);
         const filtered = completedHabits.filter(h => h.id !== habitId);
-        saveCompletedHabits(filtered);
+        await saveCompletedHabits(filtered);
 
         if (habit) {
-            logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: true });
+            await logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: true });
         }
     } else {
-        const habits = getHabits();
+        const habits = await getHabits();
         const habit = habits.find(h => h.id === habitId);
         const filtered = habits.filter(h => h.id !== habitId);
-        saveHabits(filtered);
+        await saveHabits(filtered);
 
         if (habit) {
-            logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: false });
+            await logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: false });
         }
     }
 
-    renderHabits();
-    renderStreaks();
+    await renderHabits();
+    await renderStreaks();
 }
 
 // Check if habit was completed today
@@ -220,9 +246,22 @@ function isCompletedToday(habit) {
 }
 
 // Render habits
-function renderHabits() {
-    const habits = getHabits();
-    const completedHabits = getCompletedHabits();
+async function renderHabits() {
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        // User not logged in - show message
+        const currentContainer = document.getElementById('currentHabits');
+        const completedContainer = document.getElementById('completedHabits');
+        const noHabitsMsg = document.getElementById('noHabitsMessage');
+        if (currentContainer) currentContainer.innerHTML = '<div class="no-data-message">Please <a href="login.html">log in</a> to view your habits.</div>';
+        if (completedContainer) completedContainer.innerHTML = '';
+        if (noHabitsMsg) noHabitsMsg.style.display = 'none';
+        return;
+    }
+    
+    const habits = await getHabits();
+    const completedHabits = await getCompletedHabits();
 
     const currentContainer = document.getElementById('currentHabits');
     const completedContainer = document.getElementById('completedHabits');
@@ -343,8 +382,17 @@ function generateContributionGraph(habit) {
 }
 
 // Render streaks and rewards
-function renderStreaks() {
-    const habits = getHabits();
+async function renderStreaks() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        const streaksContainer = document.getElementById('streaksContainer');
+        if (streaksContainer) {
+            streaksContainer.innerHTML = '<div class="no-streaks-message"><p>Please <a href="login.html">log in</a> to view your streaks.</p></div>';
+        }
+        return;
+    }
+    
+    const habits = await getHabits();
     const streaksContainer = document.getElementById('streaksContainer');
 
     // Filter habits that have any completions (not just streaks > 0)
@@ -440,8 +488,15 @@ function renderStreaks() {
 }
 
 // Form submission handler
-document.getElementById('addHabitForm').addEventListener('submit', function(e) {
+document.getElementById('addHabitForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        window.location.href = '/login.html';
+        return;
+    }
 
     const name = document.getElementById('habitName').value.trim();
     const description = document.getElementById('habitDescription').value.trim();
@@ -453,27 +508,31 @@ document.getElementById('addHabitForm').addEventListener('submit', function(e) {
     }
 
     const habit = new Habit(name, description, reminderFrequency);
-    const habits = getHabits();
+    const habits = await getHabits();
     habits.push(habit);
-    saveHabits(habits);
+    await saveHabits(habits);
 
-    logAction('HABIT_CREATED', { habitId: habit.id, habitName: habit.name });
+    await logAction('HABIT_CREATED', { habitId: habit.id, habitName: habit.name });
 
     // Reset form
     this.reset();
 
     // Render updated habits
-    renderHabits();
-    renderStreaks();
+    await renderHabits();
+    await renderStreaks();
 
     // Show success message
     alert('Habit created successfully!');
 });
 
 // Initial render on page load
-document.addEventListener('DOMContentLoaded', function() {
-    renderHabits();
-    renderStreaks();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check authentication first
+    const user = await window.userDataManager?.requireAuth();
+    if (!user) return; // Will redirect to login if not authenticated
+    
+    await renderHabits();
+    await renderStreaks();
 
-    logAction('PAGE_VIEW', { page: 'habits' });
+    await logAction('PAGE_VIEW', { page: 'habits' });
 });
