@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>Reclaim</h1>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#mood">Mood Tracker</a></li>
+        <li><a href="habits.html">Habits</a></li>
+        <li><a href="journal.html">Journal</a></li>
+        <li><a href="#resources">Resources</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+      <div class="hero-content">
+        <h2>Journal</h2>
+        <p>Capture your thoughts and emotions to better understand your well-being.</p>
+      </div>
+    </section>
+
+    <!-- Journaling Section -->
+    <section id="mood" class="section mood-section">
+      <div class="mood-header">
+        <h2>Write your way to a clearer mind 💭</h2>
+        <p class="mood-subtitle">
+          Reflect on your thoughts and emotions through guided prompts or free writing. 
+          Your personal journal helps you track patterns, gain self-awareness, and support your overall wellness journey.
+        </p>
+      </div>
+
+      <!-- Buttons to choose journal type -->
+      <div class="mood-selector">
+        <!-- JS variable: guidedJournalBtn -->
+        <button id="guidedBtn" class="mood-btn">
+          <span class="mood-emoji">📝</span>
+          <span class="mood-label">Guided Journaling with a Prompt</span>
+        </button>
+
+        <!-- JS variable: freeJournalBtn -->
+        <button id="freeBtn" class="mood-btn">
+          <span class="mood-emoji">📖</span>
+          <span class="mood-label">Free Journaling</span>
+        </button>
+      </div>
+
+      <!-- Container for guided prompt buttons (JS variable: promptsContainer) -->
+      <div id="guidedPrompts" style="display: none; margin-top: 1rem;"></div>
+
+      <div class="mood-tracker-card">
+        <div class="mood-notes-section">
+          <!-- Optional Journal Title -->
+          <textarea id="journalTitle" class="mood-notes-input" placeholder="Journal Title" rows="1"></textarea>
+
+          <!-- Main Journal Textarea (JS uses: moodNotes) -->
+          <textarea id="moodNotes" class="mood-notes-input" rows="8"></textarea>
+        </div>
+
+        <!-- Save Button (JS uses: saveMoodBtn) -->
+        <button id="saveMoodBtn" class="btn btn-primary btn-save-mood" disabled>
+          Save Journal Entry
+        </button>
+
+        <div id="mood-message" class="mood-message"></div>
+      </div>
+
+      <div class="mood-history-section">
+        <h3>Recent Journal Entries</h3>
+        <div id="moodHistory" class="mood-history-grid">
+          <!-- Mood history will be inserted here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section id="resources" class="section">
+      <h2>Support Resources</h2>
+      <div class="resources-grid">
+        <div class="resource-card">
+          <h3>YFS Health Services</h3>
+          <p>York Federation of Students offers confidential health and wellness support.</p>
+          <a href="#" class="btn">Learn More</a>
+        </div>
+        <div class="resource-card">
+          <h3>Crisis Support</h3>
+          <p>24/7 crisis support line available for immediate help.</p>
+          <a href="#" class="btn">Get Help</a>
+        </div>
+        <div class="resource-card">
+          <h3>Counselling Services</h3>
+          <p>Professional counselling services available to all students.</p>
+          <a href="#" class="btn">Book Session</a>
+        </div>
+        <div class="resource-card">
+          <h3>Wellness Workshops</h3>
+          <p>Join workshops on stress management, time management, and more.</p>
+          <a href="#" class="btn">View Schedule</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
+  </footer>
+
+  <!-- Global JS -->
+  <script src="app.js"></script>
+  <!-- Journal page JS -->
+  <script src="journal.js"></script>
+</body>
+</html>
