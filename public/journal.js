@@ -1,3 +1,4 @@
+// (no change) everything still runs on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", async () => {
   // Check authentication first
   const user = await window.userDataManager?.requireAuth();
@@ -14,27 +15,59 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!guidedJournalBtn || !freeJournalBtn || !promptsContainer) return;
 
-  // Load prompts from server-managed content; fallback to previous defaults
-  async function fetchPrompts() {
+  // -----------------------------
+  // ORIGINAL DEFAULT PROMPTS (kept exactly as a fallback)
+  // -----------------------------
+  const DEFAULT_PROMPT_BUTTON_TITLES = [
+    "Prompt 1: Self-Reflection 🪞",
+    "Prompt 2: Gratitude 🌤️",
+    "Prompt 3: Growth or Challenge 💪",
+    "Prompt 4: Intention for Tomorrow 🌱"
+  ];
+
+  const DEFAULT_PROMPT_TEXTS = [
+    "What's one emotion that stood out to you today? Why do you think you felt that way?",
+    "List one thing you’re grateful for today.",
+    "What challenged you today, and what did you learn from it?",
+    "What’s one thing you want to focus on or improve tomorrow?"
+  ];
+
+  // -----------------------------
+  // NEW: Try to load admin-managed prompts; fall back to defaults above
+  // API shape expected from /api/content:
+  // { prompts: [{ title: string, text: string }, ...] }
+  // -----------------------------
+  async function loadManagedPrompts() {
     try {
-      const res = await fetch('/api/content');
+      const res = await fetch('/api/content', { credentials: 'include' });
       if (!res.ok) throw new Error('no content');
       const data = await res.json();
-      const prompts = (data.prompts || []).map(p => ({ title: p.title, text: p.text }));
-      if (prompts.length) return prompts;
+
+      // validate structure and map
+      const managed = Array.isArray(data?.prompts)
+        ? data.prompts
+            .filter(p => p && typeof p.title === 'string' && typeof p.text === 'string')
+            .map(p => ({ title: p.title, text: p.text }))
+        : [];
+
+      if (managed.length > 0) {
+        return {
+          titles: managed.map(p => p.title),
+          texts: managed.map(p => p.text)
+        };
+      }
     } catch (e) {
-      // ignore, fallback below
+      // silently fall back
     }
-    return [
-      "Prompt 1: Self-Reflection 🪞|What's one emotion that stood out to you today? Why do you think you felt that way?",
-      "Prompt 2: Gratitude 🌤️|List one thing you’re grateful for today.",
-      "Prompt 3: Growth or Challenge 💪|What challenged you today, and what did you learn from it?",
-      "Prompt 4: Intention for Tomorrow 🌱|What’s one thing you want to focus on or improve tomorrow?"
-    ].map(s => {
-      const [title, text] = s.split('|');
-      return { title, text };
-    });
+
+    // Fallback to your original hardcoded content
+    return {
+      titles: DEFAULT_PROMPT_BUTTON_TITLES,
+      texts: DEFAULT_PROMPT_TEXTS
+    };
   }
+
+  const { titles: promptButtonTitles, texts: promptTexts } = await loadManagedPrompts();
 
   async function updateJournalHistory() {
     const user = await window.userDataManager?.getCurrentUser();
@@ -42,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your journal entries.</div>';
       return;
     }
-    
+
     const storageKey = window.userDataManager.getUserStorageKey("journalEntries", user.id);
     const entries = JSON.parse(localStorage.getItem(storageKey) || "[]");
     historyContainer.innerHTML = "";
@@ -56,41 +89,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("div");
       card.classList.add("journal-card");
       card.innerHTML = `
-        <h4>${escapeHTML(entry.title)}</h4>
-        <p>${escapeHTML(entry.content)}</p>
-        <small>${escapeHTML(entry.date)}</small>
+        <h4>${entry.title}</h4>
+        <p>${entry.content}</p>
+        <small>${entry.date}</small>
       `;
       historyContainer.appendChild(card);
     });
   }
 
-  function escapeHTML(str) {
-    return (str || "").replace(/[&<>"']/g, (ch) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    }[ch]));
-  }
-
   updateJournalHistory();
 
-  // Buttons to choose journal type
-  guidedJournalBtn.addEventListener("click", async () => {
-    const prompts = await fetchPrompts();
-
-    // Container for guided prompt buttons (JS variable: promptsContainer)
-    promptsContainer.innerHTML = ""; 
+  // Guided journaling: render buttons from managed prompts, fallback kept above
+  guidedJournalBtn.addEventListener("click", () => {
+    promptsContainer.innerHTML = "";
     promptsContainer.style.display = "flex";
     promptsContainer.style.justifyContent = "space-between";
     promptsContainer.style.flexWrap = "wrap";
     promptsContainer.style.gap = "10px";
     promptsContainer.style.marginBottom = "20px";
 
-    prompts.forEach(({ title, text }) => {
+    promptTexts.forEach((text, index) => {
       const promptBtn = document.createElement("button");
-      promptBtn.textContent = title;
+      promptBtn.textContent = promptButtonTitles[index] ?? `Prompt ${index + 1}`;
       promptBtn.classList.add("mood-btn");
       promptBtn.style.flex = "1";
       promptBtn.style.minWidth = "200px";
@@ -104,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // JS variable: freeJournalBtn
+  // Free journaling unchanged
   freeJournalBtn.addEventListener("click", () => {
     promptsContainer.style.display = "none";
     journalTextarea.value = "";
@@ -120,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Save Button (JS uses: saveMoodBtn)
+  // Save entry unchanged
   saveBtn.addEventListener("click", async () => {
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {

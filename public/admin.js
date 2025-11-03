@@ -169,3 +169,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       await saveItem('exercises', { id: newId(), title: title.trim(), instructions: instructions.trim() }, 'create');
     });
   });
+  

@@ -80,5 +80,3 @@ async function loadDashboard() {
 
 // Initialize dashboard
 window.addEventListener('DOMContentLoaded', loadDashboard);
-
-fetch('/api/user').then(r=>r.json()).then(console.log);

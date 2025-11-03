@@ -16,4 +16,4 @@ if (!u) {
 }
 u.role = 'admin';
 fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-console.log('Promoted to admin:', email);
+console.log('User promoted to admin:', email);
