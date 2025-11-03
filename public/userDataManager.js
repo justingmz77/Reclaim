@@ -65,7 +65,7 @@ async function requireAuth() {
     return user;
 }
 
-// NEW: Simple helper to check admin role on client (UI only; server enforces routes)
+// Simple helper to check admin role on client (UI only; server enforces routes)
 function isAdmin(user) {
     return !!user && user.role === 'admin';
 }
