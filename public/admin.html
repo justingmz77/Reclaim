@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Content - Reclaim</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <nav>
+      <h1><a href="index.html" style="text-decoration: none; color: inherit;">Reclaim</a></h1>
+      <ul>
+        <!-- Navigation will be populated by nav.js -->
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="dashboard-header">
+        <h2>Manage Content</h2>
+        <p class="dashboard-subtitle">Add, edit, or delete prompts, games, and exercises</p>
+      </div>
+
+      <!-- Gate for non-admins -->
+      <div id="adminOnlyGate" class="no-data-message" style="display:none;">
+        You need an admin account to access this page.
+      </div>
+
+      <!-- Admin app -->
+      <div id="adminApp" class="dashboard-stats" style="display:none;">
+        <div class="admin-tabs">
+          <button class="btn btn-small" data-tab="prompts">Journaling Prompts</button>
+          <button class="btn btn-small" data-tab="games">Games</button>
+          <button class="btn btn-small" data-tab="exercises">Exercises</button>
+        </div>
+
+        <div id="tab-prompts" class="admin-tab">
+          <div class="admin-actions">
+            <button id="addPromptBtn" class="btn btn-primary btn-small">Add Prompt</button>
+          </div>
+          <div id="promptsList" class="admin-list"></div>
+        </div>
+
+        <div id="tab-games" class="admin-tab" style="display:none;">
+          <div class="admin-actions">
+            <button id="addGameBtn" class="btn btn-primary btn-small">Add Game</button>
+          </div>
+          <div id="gamesList" class="admin-list"></div>
+        </div>
+
+        <div id="tab-exercises" class="admin-tab" style="display:none;">
+          <div class="admin-actions">
+            <button id="addExerciseBtn" class="btn btn-primary btn-small">Add Exercise</button>
+          </div>
+          <div id="exercisesList" class="admin-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
+  </footer>
+
+  <!-- Global JS -->
+  <script src="userDataManager.js"></script>
+  <script src="nav.js"></script>
+  <!-- Admin page JS -->
+  <script src="admin.js"></script>
+</body>
+</html>

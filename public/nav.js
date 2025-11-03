@@ -77,7 +77,15 @@ function showLoggedInNav(nav, user) {
 
     // Add Dashboard and Logout for logged-in users
     navItems.push(
-        { text: 'Dashboard', href: 'dashboard.html' },
+        { text: 'Dashboard', href: 'dashboard.html' }
+    );
+
+    // Admin-only: Manage Content
+    if (window.userDataManager?.isAdmin(user)) {
+        navItems.push({ text: 'Manage Content', href: 'admin.html' });
+    }
+
+    navItems.push(
         { text: 'Logout', href: '#', id: 'logoutLink', onclick: 'logout()' }
     );
 
@@ -160,4 +168,3 @@ async function logout() {
         window.location.href = '/login.html';
     }
 }
-

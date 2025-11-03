@@ -14,19 +14,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!guidedJournalBtn || !freeJournalBtn || !promptsContainer) return;
 
-  const promptButtonTitles = [
-    "Prompt 1: Self-Reflection 🪞",
-    "Prompt 2: Gratitude 🌤️",
-    "Prompt 3: Growth or Challenge 💪",
-    "Prompt 4: Intention for Tomorrow 🌱"
-  ];
-
-  const promptTexts = [
-    "What's one emotion that stood out to you today? Why do you think you felt that way?", 
-    "List one thing you’re grateful for today.",
-    "What challenged you today, and what did you learn from it?",
-    "What’s one thing you want to focus on or improve tomorrow?"
-  ];
+  // Load prompts from server-managed content; fallback to previous defaults
+  async function fetchPrompts() {
+    try {
+      const res = await fetch('/api/content');
+      if (!res.ok) throw new Error('no content');
+      const data = await res.json();
+      const prompts = (data.prompts || []).map(p => ({ title: p.title, text: p.text }));
+      if (prompts.length) return prompts;
+    } catch (e) {
+      // ignore, fallback below
+    }
+    return [
+      "Prompt 1: Self-Reflection 🪞|What's one emotion that stood out to you today? Why do you think you felt that way?",
+      "Prompt 2: Gratitude 🌤️|List one thing you’re grateful for today.",
+      "Prompt 3: Growth or Challenge 💪|What challenged you today, and what did you learn from it?",
+      "Prompt 4: Intention for Tomorrow 🌱|What’s one thing you want to focus on or improve tomorrow?"
+    ].map(s => {
+      const [title, text] = s.split('|');
+      return { title, text };
+    });
+  }
 
   async function updateJournalHistory() {
     const user = await window.userDataManager?.getCurrentUser();
@@ -48,17 +56,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("div");
       card.classList.add("journal-card");
       card.innerHTML = `
-        <h4>${entry.title}</h4>
-        <p>${entry.content}</p>
-        <small>${entry.date}</small>
+        <h4>${escapeHTML(entry.title)}</h4>
+        <p>${escapeHTML(entry.content)}</p>
+        <small>${escapeHTML(entry.date)}</small>
       `;
       historyContainer.appendChild(card);
     });
   }
 
+  function escapeHTML(str) {
+    return (str || "").replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[ch]));
+  }
+
   updateJournalHistory();
 
-  guidedJournalBtn.addEventListener("click", () => {
+  // Buttons to choose journal type
+  guidedJournalBtn.addEventListener("click", async () => {
+    const prompts = await fetchPrompts();
+
+    // Container for guided prompt buttons (JS variable: promptsContainer)
     promptsContainer.innerHTML = ""; 
     promptsContainer.style.display = "flex";
     promptsContainer.style.justifyContent = "space-between";
@@ -66,9 +88,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     promptsContainer.style.gap = "10px";
     promptsContainer.style.marginBottom = "20px";
 
-    promptTexts.forEach((text, index) => {
+    prompts.forEach(({ title, text }) => {
       const promptBtn = document.createElement("button");
-      promptBtn.textContent = promptButtonTitles[index];
+      promptBtn.textContent = title;
       promptBtn.classList.add("mood-btn");
       promptBtn.style.flex = "1";
       promptBtn.style.minWidth = "200px";
@@ -82,6 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // JS variable: freeJournalBtn
   freeJournalBtn.addEventListener("click", () => {
     promptsContainer.style.display = "none";
     journalTextarea.value = "";
@@ -97,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // Save Button (JS uses: saveMoodBtn)
   saveBtn.addEventListener("click", async () => {
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {

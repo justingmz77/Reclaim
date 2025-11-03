@@ -65,12 +65,17 @@ async function requireAuth() {
     return user;
 }
 
+// NEW: Simple helper to check admin role on client (UI only; server enforces routes)
+function isAdmin(user) {
+    return !!user && user.role === 'admin';
+}
+
 // Export functions
 window.userDataManager = {
     getCurrentUser,
     getUserStorageKey,
     clearUserData,
     clearAllReclaimData,
-    requireAuth
+    requireAuth,
+    isAdmin
 };
-
