@@ -60,7 +60,8 @@ function showLoggedInNav(nav, user) {
     let navItems = [
         { text: 'Home', href: 'index.html' },
         { text: 'Mood Tracker', href: 'index.html#mood' },
-        { text: 'Habits', href: 'habits.html' }
+        { text: 'Habits', href: 'habits.html' },
+        { text: 'Wellness Tools', href: 'wellness-tools.html' }
     ];
 
     // Add Journal if it exists
