@@ -12,5 +12,12 @@
     "password": "$2b$10$01bCijguabrAyqZb.tndDujzjFweV4Syc6LP8AwIbSTYIiwZpJv1q",
     "role": "admin",
     "createdAt": "2025-11-03T05:38:07.270Z"
+  },
+  {
+    "id": "1764518580787sy7vsuwkn",
+    "email": "kieranb@my.yorku.ca",
+    "password": "$2b$10$Cvdvc.PpSwH6X6TSsGAIH.luwa6n7TCaJ60P3bX/bHyYsk.bytLhy",
+    "role": "student",
+    "createdAt": "2025-11-30T16:03:00.787Z"
   }
 ]

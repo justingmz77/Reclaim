@@ -1,7 +1,10 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const auth = require('./auth');
+const auth = require('./utils/auth');
+const fs = require('fs');
+const database = require('./utils/database');
+const Users = database.Users;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -130,8 +133,13 @@ app.get('/api/user', (req, res) => {
 });
 
 // Protected route for dashboard
-app.get('/dashboard.html', requireAuth, (req, res) => {
+app.get('/dashboard', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/users', (req, res) => {
+  const users = Users.all();
+  res.json(users);
 });
 
 // Start server

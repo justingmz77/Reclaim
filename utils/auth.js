@@ -1,23 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 const bcrypt = require('bcrypt');
-
-const USERS_FILE = path.join(__dirname, 'users.json');
-
-// load users from file
-function loadUsers() {
-  try {
-    const data = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-}
-
-// save users to file
-function saveUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
+const { Users } = require('./database');
 
 // validate york email
 function isValidYorkUEmail(email) {
@@ -30,10 +12,9 @@ async function createUser(email, password) {
     throw new Error('Email must be a valid YorkU email (@my.yorku.ca)');
   }
 
-  const users = loadUsers();
-  
   // see if user alrd exists
-  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+  const existingUser = Users.getByEmail(email);
+  if (existingUser.success) {
     throw new Error('User with this email already exists');
   }
 
@@ -49,8 +30,7 @@ async function createUser(email, password) {
     createdAt: new Date().toISOString()
   };
 
-  users.push(user);
-  saveUsers(users);
+  Users.add(user.id, user.email, user.password, user.role, user.createdAt);
 
   return {
     id: user.id,
@@ -61,13 +41,12 @@ async function createUser(email, password) {
 
 // authenticate the user
 async function authenticateUser(email, password) {
-  const users = loadUsers();
-  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-  if (!user) {
+  const db_result = await Users.getByEmail(email);
+  if (!db_result.success) {
     throw new Error('Invalid email or password');
   }
 
+  const user = db_result.user;
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
     throw new Error('Invalid email or password');
@@ -82,8 +61,7 @@ async function authenticateUser(email, password) {
 
 // Get user by their id
 function getUserById(userId) {
-  const users = loadUsers();
-  return users.find(u => u.id === userId);
+  return Users.findById(userId);
 }
 
 module.exports = {
@@ -92,4 +70,3 @@ module.exports = {
   getUserById,
   isValidYorkUEmail
 };
-
