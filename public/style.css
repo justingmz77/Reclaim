@@ -1459,3 +1459,15 @@ footer {
     min-width: 140px;
     align-items: stretch;
 }
+
+.wellness-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin: 3rem;
+}
+
+.dashboard-card ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
