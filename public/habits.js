@@ -75,10 +75,17 @@ async function saveHabits(habits) {
 async function getCompletedHabits() {
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {
-        return {}; // Return empty if not logged in
+        return []; // Return empty array when not logged in
     }
     const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.COMPLETED_HABITS, user.id);
-    return JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const raw = localStorage.getItem(storageKey);
+    try {
+        const parsed = JSON.parse(raw || '[]');
+        return Array.isArray(parsed) ? parsed : []; // ensure array
+    } catch (err) {
+        console.error('Failed to parse completed habits from localStorage:', err);
+        return []; // fallback to empty array on parse error
+    }
 }
 
 // Save completed habits to localStorage (user-specific)
@@ -155,7 +162,7 @@ async function markHabitComplete(habitId) {
 
 // Check for streak rewards (Use Case 8: Focus Games/Rewards)
 function checkStreakRewards(habit) {
-    const milestones = [7, 14, 30, 60, 90, 180, 365];
+    const milestones = [1, 7, 14, 30, 60, 90, 180, 365];
 
     if (milestones.includes(habit.streak)) {
         showRewardNotification(habit);
@@ -164,7 +171,12 @@ function checkStreakRewards(habit) {
 
 // Show reward notification
 function showRewardNotification(habit) {
-    const message = `🎉 Congratulations! You've maintained "${habit.name}" for ${habit.streak} days straight!`;
+    let message = '';
+    if (habit.streak === 1){
+        message = `🚀 Great start! You've completed the first day of "${habit.name}", keep it going!`;
+    } else {
+        message = `🎉 Congratulations! You've maintained "${habit.name}" for ${habit.streak} days straight!`;
+    }
 
     // Create notification element
     const notification = document.createElement('div');
@@ -392,7 +404,7 @@ async function renderStreaks() {
         return;
     }
     
-    const habits = await getHabits();
+    const habits = await getHabits(); // <-- Await here!
     const streaksContainer = document.getElementById('streaksContainer');
 
     // Filter habits that have any completions (not just streaks > 0)
@@ -430,6 +442,13 @@ async function renderStreaks() {
 
             // Generate contribution graph
             const weeks = generateContributionGraph(habit);
+
+            const allHabits = habits; // Use the already awaited habits
+            const longestStreak = Math.max(...habit.completionHistory.map(d => {
+                const h = allHabits.find(h2 => h2.id === habit.id);
+                return h ? calculateStreak(h) : 0;
+            }), currentStreak);
+
             const contributionHTML = `
                 <div class="contribution-graph">
                     <div class="graph-label">Last 12 weeks</div>
@@ -473,10 +492,7 @@ async function renderStreaks() {
                             <span class="stat-label">Total Completions</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">${Math.max(...habit.completionHistory.map(d => {
-                                const h = getHabits().find(h2 => h2.id === habit.id);
-                                return h ? calculateStreak(h) : 0;
-                            }), currentStreak)}</span>
+                            <span class="stat-number">${longestStreak}</span>
                             <span class="stat-label">Longest Streak</span>
                         </div>
                     </div>
