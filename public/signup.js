@@ -25,9 +25,30 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         return;
     }
     
-    // Validate password length
-    if (password.length < 6) {
-        errorMessage.textContent = 'Password must be at least 6 characters long';
+    // Password validation function
+    function validatePassword(password) {
+        if (password.length < 8) {
+            return { isValid: false, error: 'Password must be at least 8 characters long' };
+        }
+        if (!/[A-Z]/.test(password)) {
+            return { isValid: false, error: 'Password must include at least one uppercase letter' };
+        }
+        if (!/[a-z]/.test(password)) {
+            return { isValid: false, error: 'Password must include at least one lowercase letter' };
+        }
+        if (!/\d/.test(password)) {
+            return { isValid: false, error: 'Password must include at least one number' };
+        }
+        if (!/[!@#$%^&*]/.test(password)) {
+            return { isValid: false, error: 'Password must include at least one special character (!@#$%^&*)' };
+        }
+        return { isValid: true };
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+        errorMessage.textContent = passwordValidation.error;
         errorMessage.style.display = 'block';
         return;
     }
@@ -50,7 +71,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         
         if (response.ok) {
             // Success - redirect to dashboard
-            window.location.href = '/dashboard.html';
+            window.location.href = '/dashboard';
         } else {
             // Show error message
             errorMessage.textContent = data.error || 'An error occurred. Please try again.';
@@ -79,6 +100,40 @@ document.getElementById('email').addEventListener('blur', function() {
     }
 });
 
+// Password validation function
+function validatePassword(password) {
+    if (password.length < 8) {
+        return { isValid: false, error: 'Password must be at least 8 characters long' };
+    }
+    if (!/[A-Z]/.test(password)) {
+        return { isValid: false, error: 'Password must include at least one uppercase letter' };
+    }
+    if (!/[a-z]/.test(password)) {
+        return { isValid: false, error: 'Password must include at least one lowercase letter' };
+    }
+    if (!/\d/.test(password)) {
+        return { isValid: false, error: 'Password must include at least one number' };
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+        return { isValid: false, error: 'Password must include at least one special character (!@#$%^&*)' };
+    }
+    return { isValid: true };
+}
+
+// Real-time password validation feedback
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const errorMessage = document.getElementById('errorMessage');
+    const validation = validatePassword(password);
+    
+    if (password.length > 0 && !validation.isValid) {
+        errorMessage.textContent = validation.error;
+        errorMessage.style.display = 'block';
+    } else if (password.length > 0 && validation.isValid) {
+        errorMessage.style.display = 'none';
+    }
+});
+
 // Real-time password confirmation validation
 document.getElementById('confirmPassword').addEventListener('input', function() {
     const password = document.getElementById('password').value;
@@ -89,7 +144,11 @@ document.getElementById('confirmPassword').addEventListener('input', function() 
         errorMessage.textContent = 'Passwords do not match';
         errorMessage.style.display = 'block';
     } else if (confirmPassword && password === confirmPassword) {
-        errorMessage.style.display = 'none';
+        // Check if password is valid before clearing error
+        const validation = validatePassword(password);
+        if (validation.isValid) {
+            errorMessage.style.display = 'none';
+        }
     }
 });
 

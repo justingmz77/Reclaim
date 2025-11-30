@@ -74,7 +74,7 @@ function showLoggedInNav(nav, user) {
 
     // Add Dashboard and Logout for logged-in users
     navItems.push(
-        { text: 'Dashboard', href: 'dashboard.html' }
+        { text: 'Dashboard', href: '/dashboard' }
     );
 
     // Admin-only: Manage Content
@@ -103,17 +103,12 @@ function showLoggedOutNav(nav) {
     
     let navItems = [
         { text: 'Home', href: 'index.html' },
-        { text: 'Mood Tracker', href: 'index.html#mood' },
-        { text: 'Habits', href: 'habits.html' },
-        { text: 'Journal', href: 'journal.html' },
+        { text: 'Mood Tracker', href: 'index.html#mood', requiresAuth: true },
+        { text: 'Habits', href: 'habits.html', requiresAuth: true },
+        { text: 'Journal', href: 'journal.html', requiresAuth: true },
+        { text: 'Wellness Tools', href: 'wellness-tools.html', requiresAuth: true },
+        { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true }
     ];
-
-    // Add Resources
-    if (currentPath.includes('index.html')) {
-        navItems.push({ text: 'Resources', href: '#resources' });
-    } else {
-        navItems.push({ text: 'Resources', href: 'index.html#resources' });
-    }
 
     // Add Login and Sign Up for logged-out users (except on login/signup pages)
     if (!currentPath.includes('login.html') && !currentPath.includes('signup.html')) {
@@ -124,15 +119,54 @@ function showLoggedOutNav(nav) {
     }
 
     renderNav(nav, navItems);
+    
+    // Add click handlers for protected links
+    addProtectedLinkHandlers();
 }
 
 function renderNav(nav, navItems) {
     nav.innerHTML = navItems.map(item => {
+        const dataAttrs = [];
+        if (item.id) dataAttrs.push(`id="${item.id}"`);
+        if (item.requiresAuth) dataAttrs.push(`data-requires-auth="true"`);
+        
+        const attrs = dataAttrs.length > 0 ? ' ' + dataAttrs.join(' ') : '';
+        
         if (item.onclick) {
-            return `<li><a href="${item.href}" ${item.id ? `id="${item.id}"` : ''}>${item.text}</a></li>`;
+            return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
         }
-        return `<li><a href="${item.href}">${item.text}</a></li>`;
+        return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
     }).join('');
+}
+
+// Add click handlers for protected links (mood tracker, resources, etc.)
+function addProtectedLinkHandlers() {
+    const protectedLinks = document.querySelectorAll('nav a[data-requires-auth="true"]');
+    
+    protectedLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            // Check if user is authenticated
+            const user = await window.userDataManager?.getCurrentUser();
+            
+            if (!user) {
+                e.preventDefault();
+                // Store the intended destination (preserve hash if present)
+                let href = link.getAttribute('href');
+                
+                // If it's a hash link and we're on index.html, preserve the full path
+                if (href.startsWith('#') && window.location.pathname.includes('index.html')) {
+                    href = window.location.pathname + href;
+                } else if (href.startsWith('#')) {
+                    // If it's just a hash and we're not on index, go to index with hash
+                    href = 'index.html' + href;
+                }
+                
+                // Redirect to login with return URL
+                window.location.href = `/login.html?redirect=${encodeURIComponent(href)}`;
+            }
+            // If user is authenticated, allow normal navigation
+        });
+    });
 }
 
 async function logout() {
