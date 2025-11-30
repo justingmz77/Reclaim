@@ -61,13 +61,9 @@ function showLoggedInNav(nav, user) {
         { text: 'Home', href: 'index.html' },
         { text: 'Mood Tracker', href: 'index.html#mood' },
         { text: 'Habits', href: 'habits.html' },
+        { text: 'Journal', href: 'journal.html' },
         { text: 'Wellness Tools', href: 'wellness-tools.html' }
     ];
-
-    // Add Journal if it exists
-    if (currentPath.includes('habits.html') || currentPath.includes('index.html')) {
-        navItems.push({ text: 'Journal', href: 'journal.html' });
-    }
 
     // Add Resources link for index page
     if (currentPath.includes('index.html')) {
@@ -108,13 +104,9 @@ function showLoggedOutNav(nav) {
     let navItems = [
         { text: 'Home', href: 'index.html' },
         { text: 'Mood Tracker', href: 'index.html#mood' },
-        { text: 'Habits', href: 'habits.html' }
+        { text: 'Habits', href: 'habits.html' },
+        { text: 'Journal', href: 'journal.html' },
     ];
-
-    // Add Journal if it exists
-    if (currentPath.includes('habits.html') || currentPath.includes('index.html')) {
-        navItems.push({ text: 'Journal', href: 'journal.html' });
-    }
 
     // Add Resources
     if (currentPath.includes('index.html')) {
