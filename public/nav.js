@@ -62,7 +62,8 @@ function showLoggedInNav(nav, user) {
         { text: 'Mood Tracker', href: 'index.html#mood' },
         { text: 'Habits', href: 'habits.html' },
         { text: 'Journal', href: 'journal.html' },
-        { text: 'Wellness Tools', href: 'wellness-tools.html' }
+        { text: 'Wellness Tools', href: 'wellness-tools.html' },
+        { text: 'Games', href: 'games.html' }
     ];
 
     // Add Resources link for index page
@@ -106,6 +107,7 @@ function showLoggedOutNav(nav) {
         { text: 'Mood Tracker', href: 'index.html#mood' },
         { text: 'Habits', href: 'habits.html' },
         { text: 'Journal', href: 'journal.html' },
+        { text: 'Games', href: 'games.html' }
     ];
 
     // Add Resources
