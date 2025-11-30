@@ -14,6 +14,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+// Session configuration
+app.use(session({
+  secret: 'reclaim-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// middleware to check if user is authenticated
+function requireAuth(req, res, next) {
+  if (req.session.userId) {
+    next();
+  } else {
+    res.redirect('/login.html');
+  }
+}
+
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

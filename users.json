@@ -1,0 +1,16 @@
+[
+  {
+    "id": "17621357676833tpym032b",
+    "email": "r@my.yorku.ca",
+    "password": "$2b$10$uVp.sy0AFDYb73tVNmygSuZ8ZbyKwmpxuEvRcuWqRRMO8BIygnaki",
+    "role": "student",
+    "createdAt": "2025-11-03T02:09:27.683Z"
+  },
+  {
+    "id": "17621482872708rvrt0ev6",
+    "email": "testadmin@my.yorku.ca",
+    "password": "$2b$10$01bCijguabrAyqZb.tndDujzjFweV4Syc6LP8AwIbSTYIiwZpJv1q",
+    "role": "admin",
+    "createdAt": "2025-11-03T05:38:07.270Z"
+  }
+]

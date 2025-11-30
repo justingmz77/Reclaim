@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Reclaim</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1><a href="index.html" style="text-decoration: none; color: inherit;">Reclaim</a></h1>
+            <ul>
+                <!-- Navigation will be populated by nav.js -->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="auth-section">
+            <div class="auth-container">
+                <h2>Welcome Back</h2>
+                <p class="auth-subtitle">Log in to access your dashboard</p>
+                
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="yourname@my.yorku.ca" 
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your password" 
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Log In</button>
+                </form>
+
+                <p class="auth-footer">
+                    Don't have an account? <a href="signup.html">Sign up here</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
+    </footer>
+
+    <script src="nav.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>
+
