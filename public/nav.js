@@ -55,18 +55,30 @@ function showAuthNav(nav, page) {
 function showLoggedInNav(nav, user) {
     // Get current page path
     const currentPath = window.location.pathname;
-    
-    // Base navigation items (common to all pages)
+
+    // Organized navigation with dropdowns
     let navItems = [
         { text: 'Home', href: 'index.html' },
-        { text: 'Mood Tracker', href: 'index.html#mood' },
-        { text: 'Habits', href: 'habits.html' },
-        { text: 'Journal', href: 'journal.html' },
-        { text: 'Wellness Tools', href: 'wellness-tools.html' },
-        { text: 'Games', href: 'games.html' }
+
+        {
+            text: 'Tracking',
+            dropdown: [
+                { text: 'Mood Tracker', href: 'index.html#mood' },
+                { text: 'Habits', href: 'habits.html' }
+            ]
+        },
+        {
+            text: 'Wellness',
+            dropdown: [
+                { text: 'Journal', href: 'journal.html' },
+                { text: 'Wellness Tools', href: 'wellness-tools.html' },
+                { text: 'Games', href: 'games.html' }
+            ]
+        },
+        { text: 'Dashboard', href: 'dashboard.html' }
     ];
 
-    // Add Resources link for index page
+    // Add Resources link
     if (currentPath.includes('index.html')) {
         navItems.push({ text: 'Resources', href: '#resources' });
     } else {
@@ -80,7 +92,7 @@ function showLoggedInNav(nav, user) {
 
     // Admin-only: Manage Content
     if (window.userDataManager?.isAdmin(user)) {
-        navItems.push({ text: 'Manage Content', href: 'admin.html' });
+        navItems.push({ text: 'Admin', href: 'admin.html' });
     }
 
     navItems.push(
@@ -101,15 +113,23 @@ function showLoggedInNav(nav, user) {
 
 function showLoggedOutNav(nav) {
     const currentPath = window.location.pathname;
-    
+
     let navItems = [
         { text: 'Home', href: 'index.html' },
-        { text: 'Mood Tracker', href: 'index.html#mood', requiresAuth: true },
-        { text: 'Habits', href: 'habits.html', requiresAuth: true },
-        { text: 'Journal', href: 'journal.html', requiresAuth: true },
-        { text: 'Wellness Tools', href: 'wellness-tools.html', requiresAuth: true },
-        { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true },
-        { text: 'Games', href: 'games.html', requiresAuth: true }
+        {
+            text: 'Tracking',
+            dropdown: [
+                { text: 'Mood Tracker', href: 'index.html#mood' },
+                { text: 'Habits', href: 'habits.html' }
+            ]
+        },
+        {
+            text: 'Wellness',
+            dropdown: [
+                { text: 'Journal', href: 'journal.html' },
+                { text: 'Games', href: 'games.html' }
+            ]
+        }
     ];
 
     // Add Login and Sign Up for logged-out users (except on login/signup pages)
@@ -128,17 +148,58 @@ function showLoggedOutNav(nav) {
 
 function renderNav(nav, navItems) {
     nav.innerHTML = navItems.map(item => {
-        const dataAttrs = [];
-        if (item.id) dataAttrs.push(`id="${item.id}"`);
-        if (item.requiresAuth) dataAttrs.push(`data-requires-auth="true"`);
-        
-        const attrs = dataAttrs.length > 0 ? ' ' + dataAttrs.join(' ') : '';
-        
+        // Handle dropdown items
+        if (item.dropdown) {
+            const dropdownItems = item.dropdown.map(subItem =>
+                `<a href="${subItem.href}">${subItem.text}</a>`
+            ).join('');
+
+            return `
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">${item.text} ▾</a>
+                    <div class="dropdown-menu">
+                        ${dropdownItems}
+                    </div>
+                </li>
+            `;
+        }
+
+        // Handle logout link
         if (item.onclick) {
             return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
         }
-        return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
+
+        // Regular link
+        return `<li><a href="${item.href}">${item.text}</a></li>`;
     }).join('');
+
+    // Add dropdown toggle functionality
+    setupDropdowns();
+}
+
+function setupDropdowns() {
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const dropdown = toggle.closest('.dropdown');
+            const wasOpen = dropdown.classList.contains('open');
+
+            // Close all dropdowns
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+
+            // Toggle current dropdown
+            if (!wasOpen) {
+                dropdown.classList.add('open');
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+        }
+    });
 }
 
 // Add click handlers for protected links (mood tracker, resources, etc.)
