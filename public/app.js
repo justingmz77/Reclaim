@@ -1,25 +1,44 @@
-// Mood Tracker with localStorage
-const MOOD_STORAGE_KEY = 'reclaim_mood_entries';
-
-// Get all mood entries from localStorage (user-specific)
+// Mood Tracker with API
+// Get all mood entries from API
 async function getMoodEntries() {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        return []; // Return empty if not logged in
+    try {
+        const response = await fetch('/api/mood-entries?limit=30');
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.log('User not authenticated');
+                return [];
+            }
+            throw new Error('Failed to fetch mood entries');
+        }
+        const data = await response.json();
+        return data.entries || [];
+    } catch (error) {
+        console.error('Error fetching mood entries:', error);
+        return [];
     }
-    const storageKey = window.userDataManager.getUserStorageKey(MOOD_STORAGE_KEY, user.id);
-    return JSON.parse(localStorage.getItem(storageKey) || '[]');
 }
 
-// Save mood entries to localStorage (user-specific)
-async function saveMoodEntries(entries) {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        console.error('Cannot save mood entries: User not authenticated');
-        return;
+// Save mood entry to API
+async function saveMoodEntry(date, mood, emoji, note) {
+    try {
+        const response = await fetch('/api/mood-entries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ date, mood, emoji, note })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save mood entry');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error saving mood entry:', error);
+        throw error;
     }
-    const storageKey = window.userDataManager.getUserStorageKey(MOOD_STORAGE_KEY, user.id);
-    localStorage.setItem(storageKey, JSON.stringify(entries));
 }
 
 // Get today's date string
@@ -73,55 +92,37 @@ saveMoodBtn.addEventListener('click', async () => {
     const emoji = document.querySelector(`.mood-btn[data-mood="${selectedMood}"]`).dataset.emoji;
     const note = moodNotesInput.value.trim();
 
-    // Get existing entries
-    const entries = await getMoodEntries();
+    try {
+        // Save to database via API
+        await saveMoodEntry(today, selectedMood, emoji, note);
 
-    // Check if there's already an entry for today
-    const existingIndex = entries.findIndex(entry => entry.date === today);
+        // Show success message
+        const moodLabels = {
+            great: 'Great',
+            good: 'Good',
+            okay: 'Okay',
+            bad: 'Not Good',
+            terrible: 'Terrible'
+        };
 
-    const newEntry = {
-        date: today,
-        mood: selectedMood,
-        emoji: emoji,
-        note: note,
-        timestamp: new Date().toISOString()
-    };
+        moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
+        moodMessage.classList.add('show');
 
-    if (existingIndex >= 0) {
-        // Update existing entry
-        entries[existingIndex] = newEntry;
-    } else {
-        // Add new entry
-        entries.unshift(newEntry);
+        // Reset form
+        setTimeout(() => {
+            moodMessage.classList.remove('show');
+        }, 3000);
+
+        // Render updated history
+        await renderMoodHistory();
+    } catch (error) {
+        // Show error message
+        moodMessage.textContent = '❌ Failed to save mood. Please try again.';
+        moodMessage.classList.add('show');
+        setTimeout(() => {
+            moodMessage.classList.remove('show');
+        }, 3000);
     }
-
-    // Keep only last 30 entries
-    if (entries.length > 30) {
-        entries.splice(30);
-    }
-
-    // Save to localStorage
-    await saveMoodEntries(entries);
-
-    // Show success message
-    const moodLabels = {
-        great: 'Great',
-        good: 'Good',
-        okay: 'Okay',
-        bad: 'Not Good',
-        terrible: 'Terrible'
-    };
-
-    moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
-    moodMessage.classList.add('show');
-
-    // Reset form
-    setTimeout(() => {
-        moodMessage.classList.remove('show');
-    }, 3000);
-
-    // Render updated history
-    await renderMoodHistory();
 });
 
 // Render mood history

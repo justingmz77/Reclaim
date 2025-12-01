@@ -1,0 +1,92 @@
+[
+  {
+    "id": "me001",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-20",
+    "mood": "great",
+    "emoji": "😊",
+    "note": "Had a great day! Finished all my assignments early.",
+    "timestamp": "2025-11-20T20:30:00.000Z"
+  },
+  {
+    "id": "me002",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-21",
+    "mood": "bad",
+    "emoji": "😰",
+    "note": "Lots of work to do. Feeling overwhelmed with upcoming deadlines.",
+    "timestamp": "2025-11-21T21:15:00.000Z"
+  },
+  {
+    "id": "me003",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-22",
+    "mood": "good",
+    "emoji": "😌",
+    "note": "Took some time to meditate and relax. Feeling much better.",
+    "timestamp": "2025-11-22T19:45:00.000Z"
+  },
+  {
+    "id": "me004",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-23",
+    "mood": "great",
+    "emoji": "🤩",
+    "note": "Got accepted into the research program I applied for!",
+    "timestamp": "2025-11-23T18:00:00.000Z"
+  },
+  {
+    "id": "me005",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-24",
+    "mood": "okay",
+    "emoji": "😴",
+    "note": "Long day of studying. Need to get better sleep.",
+    "timestamp": "2025-11-24T22:30:00.000Z"
+  },
+  {
+    "id": "me006",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-25",
+    "mood": "good",
+    "emoji": "😊",
+    "note": "Productive day. Made good progress on my project.",
+    "timestamp": "2025-11-25T20:00:00.000Z"
+  },
+  {
+    "id": "me007",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-26",
+    "mood": "bad",
+    "emoji": "😟",
+    "note": "Worried about the presentation tomorrow.",
+    "timestamp": "2025-11-26T21:45:00.000Z"
+  },
+  {
+    "id": "me008",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-27",
+    "mood": "great",
+    "emoji": "😄",
+    "note": "Presentation went really well! Got great feedback.",
+    "timestamp": "2025-11-27T17:30:00.000Z"
+  },
+  {
+    "id": "me009",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-28",
+    "mood": "okay",
+    "emoji": "😐",
+    "note": "Regular day. Nothing special happened.",
+    "timestamp": "2025-11-28T19:00:00.000Z"
+  },
+  {
+    "id": "me010",
+    "userId": "1764518580787sy7vsuwkn",
+    "date": "2025-11-29",
+    "mood": "good",
+    "emoji": "💪",
+    "note": "Ready to tackle the final week of the semester!",
+    "timestamp": "2025-11-29T08:00:00.000Z"
+  }
+]
