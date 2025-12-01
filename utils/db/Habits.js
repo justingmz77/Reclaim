@@ -140,6 +140,128 @@ const Habits = {
       console.error('Error deleting habit completion:', error);
       return { success: false, error: error.message };
     }
+  },
+
+  // Analytics functions
+  getCompletionRatesByDateRange: function(userId, startDate, endDate) {
+    try {
+      const habitsResult = this.getUserHabits(userId, false);
+      if (!habitsResult.success) return habitsResult;
+
+      const habits = habitsResult.habits;
+      const totalDays = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+
+      const habitRates = habits.map(habit => {
+        const completions = db.prepare(`
+          SELECT COUNT(*) as count
+          FROM habit_completions
+          WHERE habitId = ? AND completedDate BETWEEN ? AND ?
+        `).get(habit.id, startDate, endDate);
+
+        return {
+          habitId: habit.id,
+          name: habit.name,
+          completed: completions.count,
+          total: totalDays,
+          rate: totalDays > 0 ? (completions.count / totalDays * 100).toFixed(1) : 0,
+          streak: habit.streak
+        };
+      });
+
+      return { success: true, rates: habitRates };
+    } catch (error) {
+      console.error('Error calculating completion rates:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  getStatistics: function(userId) {
+    try {
+      const habitsResult = this.getUserHabits(userId, true);
+      if (!habitsResult.success) return habitsResult;
+
+      const allHabits = habitsResult.habits;
+      const activeHabits = allHabits.filter(h => h.status === 'in_progress');
+      const completedHabits = allHabits.filter(h => h.status === 'done');
+
+      let totalCompletions = 0;
+      let activeStreaks = 0;
+      let longestStreak = { name: '', days: 0, habitId: '' };
+
+      const today = new Date().toISOString().split('T')[0];
+      let completedToday = 0;
+
+      for (const habit of allHabits) {
+        const completionsResult = this.getCompletions(habit.id);
+        if (completionsResult.success) {
+          totalCompletions += completionsResult.completions.length;
+
+          // Check if completed today
+          if (completionsResult.completions.some(c => c.completedDate === today)) {
+            completedToday++;
+          }
+        }
+
+        if (habit.streak > 0) activeStreaks++;
+        if (habit.streak > longestStreak.days) {
+          longestStreak = { name: habit.name, days: habit.streak, habitId: habit.id };
+        }
+      }
+
+      return {
+        success: true,
+        statistics: {
+          totalHabits: allHabits.length,
+          activeHabits: activeHabits.length,
+          completedHabits: completedHabits.length,
+          totalCompletions,
+          activeStreaks,
+          longestStreak,
+          completedToday,
+          completionRateToday: activeHabits.length > 0 ? ((completedToday / activeHabits.length) * 100).toFixed(1) : 0
+        }
+      };
+    } catch (error) {
+      console.error('Error getting habit statistics:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  getCalendarData: function(userId, month, year) {
+    try {
+      const habitsResult = this.getUserHabits(userId, false);
+      if (!habitsResult.success) return habitsResult;
+
+      const habits = habitsResult.habits;
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${daysInMonth}`;
+
+      const calendarData = [];
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        const completedHabits = habits.filter(habit => {
+          const completionsResult = this.getCompletions(habit.id);
+          if (!completionsResult.success) return false;
+          return completionsResult.completions.some(c => c.completedDate === dateStr);
+        });
+
+        calendarData.push({
+          date: dateStr,
+          completed: completedHabits.length,
+          total: habits.length,
+          rate: habits.length > 0 ? (completedHabits.length / habits.length * 100).toFixed(1) : 0,
+          habits: completedHabits.map(h => ({ id: h.id, name: h.name }))
+        });
+      }
+
+      return { success: true, calendarData };
+    } catch (error) {
+      console.error('Error getting calendar data:', error);
+      return { success: false, error: error.message };
+    }
   }
 };
 

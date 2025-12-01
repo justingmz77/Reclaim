@@ -883,6 +883,305 @@ app.post('/api/habits/:id/complete', requireAuth, (req, res) => {
   }
 });
 
+// Uncomplete/Remove habit completion for a specific date
+app.delete('/api/habits/:id/complete', requireAuth, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date } = req.body;
+
+    if (!date) {
+      return res.status(400).json({ error: 'date is required' });
+    }
+
+    // Verify habit ownership
+    const habitResult = Habits.getById(id);
+    if (!habitResult.success || habitResult.habit.userId !== req.session.userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Delete the completion
+    const deleteResult = Habits.deleteCompletion(id, date);
+
+    if (!deleteResult.success) {
+      return res.status(500).json({ error: deleteResult.error });
+    }
+
+    if (deleteResult.changes === 0) {
+      return res.status(404).json({ error: 'Completion not found for this date' });
+    }
+
+    // Recalculate streak
+    const completionsResult = Habits.getCompletions(id);
+    const completionDates = completionsResult.success
+      ? completionsResult.completions.map(c => c.completedDate).sort().reverse()
+      : [];
+
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < completionDates.length; i++) {
+      const completionDate = new Date(completionDates[i]);
+      completionDate.setHours(0, 0, 0, 0);
+
+      const expectedDate = new Date(today);
+      expectedDate.setDate(expectedDate.getDate() - i);
+
+      if (completionDate.getTime() === expectedDate.getTime()) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    // Update habit streak
+    const lastCompletedDate = completionDates.length > 0 ? completionDates[0] : null;
+    const updateResult = Habits.update(
+      id,
+      req.session.userId,
+      habitResult.habit.name,
+      habitResult.habit.description,
+      habitResult.habit.reminderFrequency,
+      habitResult.habit.status,
+      streak,
+      lastCompletedDate
+    );
+
+    if (updateResult.success) {
+      res.json({
+        success: true,
+        message: 'Habit completion removed',
+        streak
+      });
+    } else {
+      res.status(500).json({ error: updateResult.error });
+    }
+  } catch (error) {
+    console.error('Error removing habit completion:', error);
+    res.status(500).json({ error: 'Failed to remove habit completion' });
+  }
+});
+
+// Analytics API endpoints
+
+// Get habit analytics statistics
+app.get('/api/analytics/habits/statistics', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const result = Habits.getStatistics(userId);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting habit statistics:', error);
+    res.status(500).json({ error: 'Failed to get statistics' });
+  }
+});
+
+// Get habit completion rates by date range
+app.get('/api/analytics/habits/completion-rates', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    const result = Habits.getCompletionRatesByDateRange(userId, startDate, endDate);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting completion rates:', error);
+    res.status(500).json({ error: 'Failed to get completion rates' });
+  }
+});
+
+// Get habit calendar data for a specific month
+app.get('/api/analytics/habits/calendar', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({ error: 'month and year are required' });
+    }
+
+    const result = Habits.getCalendarData(userId, parseInt(month), parseInt(year));
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting habit calendar data:', error);
+    res.status(500).json({ error: 'Failed to get calendar data' });
+  }
+});
+
+// Get mood trends by date range
+app.get('/api/analytics/mood/trends', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    const result = MoodEntries.getTrends(userId, startDate, endDate);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting mood trends:', error);
+    res.status(500).json({ error: 'Failed to get mood trends' });
+  }
+});
+
+// Get mood distribution by date range
+app.get('/api/analytics/mood/distribution', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    const result = MoodEntries.getDistribution(userId, startDate, endDate);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting mood distribution:', error);
+    res.status(500).json({ error: 'Failed to get mood distribution' });
+  }
+});
+
+// Get mood calendar data for a specific month
+app.get('/api/analytics/mood/calendar', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({ error: 'month and year are required' });
+    }
+
+    const result = MoodEntries.getCalendarData(userId, parseInt(month), parseInt(year));
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error getting mood calendar data:', error);
+    res.status(500).json({ error: 'Failed to get mood calendar data' });
+  }
+});
+
+// Get correlation between habits and mood
+app.get('/api/analytics/correlation', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'startDate and endDate are required' });
+    }
+
+    // Get mood trends
+    const moodResult = MoodEntries.getTrends(userId, startDate, endDate);
+    if (!moodResult.success) {
+      return res.status(500).json({ error: moodResult.error });
+    }
+
+    // Get habits and completions
+    const habitsResult = Habits.getUserHabits(userId, false);
+    if (!habitsResult.success) {
+      return res.status(500).json({ error: habitsResult.error });
+    }
+
+    // Calculate correlation
+    const correlationData = [];
+    const moodScores = {
+      'great': 5,
+      'good': 4,
+      'okay': 3,
+      'bad': 2,
+      'terrible': 1
+    };
+
+    // Group data by date
+    for (const moodEntry of moodResult.trends) {
+      const date = moodEntry.date;
+      let habitsCompleted = 0;
+
+      // Count habits completed on this date
+      for (const habit of habitsResult.habits) {
+        const completionsResult = Habits.getCompletions(habit.id);
+        if (completionsResult.success) {
+          const hasCompletion = completionsResult.completions.some(c => c.completedDate === date);
+          if (hasCompletion) habitsCompleted++;
+        }
+      }
+
+      correlationData.push({
+        date,
+        habitsCompleted,
+        mood: moodEntry.mood,
+        moodScore: moodEntry.score
+      });
+    }
+
+    // Calculate averages
+    const daysWithHabits = correlationData.filter(d => d.habitsCompleted > 0);
+    const daysWithoutHabits = correlationData.filter(d => d.habitsCompleted === 0);
+
+    const avgMoodWithHabits = daysWithHabits.length > 0
+      ? (daysWithHabits.reduce((sum, d) => sum + d.moodScore, 0) / daysWithHabits.length).toFixed(2)
+      : 0;
+
+    const avgMoodWithoutHabits = daysWithoutHabits.length > 0
+      ? (daysWithoutHabits.reduce((sum, d) => sum + d.moodScore, 0) / daysWithoutHabits.length).toFixed(2)
+      : 0;
+
+    const difference = ((avgMoodWithHabits - avgMoodWithoutHabits) / avgMoodWithoutHabits * 100).toFixed(1);
+
+    res.json({
+      success: true,
+      correlationData,
+      averageMoodWithHabits: avgMoodWithHabits,
+      averageMoodWithoutHabits: avgMoodWithoutHabits,
+      percentageDifference: difference,
+      insight: avgMoodWithHabits > avgMoodWithoutHabits
+        ? `Your mood is ${Math.abs(difference)}% better on days you complete habits`
+        : avgMoodWithHabits < avgMoodWithoutHabits
+        ? `Your mood is ${Math.abs(difference)}% worse on days you complete habits`
+        : 'No significant mood difference based on habit completion'
+    });
+  } catch (error) {
+    console.error('Error getting correlation data:', error);
+    res.status(500).json({ error: 'Failed to get correlation data' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Reclaim server running on http://localhost:${PORT}`);

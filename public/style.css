@@ -585,6 +585,95 @@ footer {
     min-height: 80px;
 }
 
+/* Habits Layout - Sidebar + Main Content */
+.habits-layout {
+    display: flex;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 3rem;
+}
+
+.habits-sidebar {
+    flex: 0 0 20%;
+    min-width: 250px;
+}
+
+.sidebar-sticky {
+    position: sticky;
+    top: 80px;
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-sticky h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #667eea;
+}
+
+.habits-main {
+    flex: 1;
+}
+
+.section-compact {
+    margin-bottom: 2rem;
+}
+
+.section-compact h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.habits-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.habit-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #666;
+}
+
+.filter-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+}
+
+.filter-btn.active:hover {
+    opacity: 0.9;
+}
+
+.btn-block {
+    width: 100%;
+}
+
 /* Habits Grid */
 .habits-grid {
     display: grid;
@@ -687,11 +776,30 @@ footer {
 }
 
 .habit-progress {
-    padding: 0.5rem;
+    padding: 0.75rem;
     background: #f8f9fa;
     border-radius: 8px;
-    text-align: center;
     font-size: 0.95rem;
+}
+
+.habit-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.habit-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.checkbox-text {
+    font-weight: 500;
+    color: #333;
 }
 
 .habit-actions {
@@ -1135,6 +1243,22 @@ footer {
     }
 
     /* Habits page responsive */
+    .habits-layout {
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+
+    .habits-sidebar {
+        flex: 1;
+        width: 100%;
+        min-width: auto;
+    }
+
+    .sidebar-sticky {
+        position: relative;
+        top: 0;
+    }
+
     .habits-grid {
         grid-template-columns: 1fr;
     }

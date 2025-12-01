@@ -10,6 +10,9 @@ const STORAGE_KEYS = {
     AUDIT_LOG: 'reclaim_audit_log'
 };
 
+// Current filter state
+let currentFilter = 'all';
+
 // Audit logging for NFR-002 compliance
 async function logAction(action, details) {
     const user = await window.userDataManager?.getCurrentUser();
@@ -112,6 +115,23 @@ function calculateStreak(habit) {
     return streak;
 }
 
+// Toggle habit completion (check/uncheck)
+async function toggleHabitCompletion(habitId, isChecked) {
+    try {
+        if (isChecked) {
+            // Mark as complete
+            await markHabitComplete(habitId);
+        } else {
+            // Uncomplete/remove completion
+            await unmarkHabitComplete(habitId);
+        }
+    } catch (error) {
+        console.error('Error toggling habit completion:', error);
+        // Revert checkbox state on error
+        await renderHabits();
+    }
+}
+
 // Mark habit as completed for today
 async function markHabitComplete(habitId) {
     const today = new Date().toISOString().split('T')[0];
@@ -146,7 +166,34 @@ async function markHabitComplete(habitId) {
         await renderStreaks();
     } catch (error) {
         console.error('Error completing habit:', error);
-        alert('Failed to mark habit as complete. Please try again.');
+        throw error;
+    }
+}
+
+// Unmark/remove habit completion for today
+async function unmarkHabitComplete(habitId) {
+    const today = new Date().toISOString().split('T')[0];
+
+    try {
+        const response = await fetch(`/api/habits/${habitId}/complete`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: today })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to uncomplete habit');
+        }
+
+        const data = await response.json();
+        await logAction('HABIT_UNCOMPLETED', { habitId, streak: data.streak });
+
+        await renderHabits();
+        await renderStreaks();
+    } catch (error) {
+        console.error('Error uncompleting habit:', error);
+        throw error;
     }
 }
 
@@ -263,23 +310,35 @@ async function renderHabits() {
         if (noHabitsMsg) noHabitsMsg.style.display = 'none';
         return;
     }
-    
-    const habits = await getHabits();
+
+    let habits = await getHabits();
+
+    // Also get completed habits for 'done' filter
     const completedHabits = await getCompletedHabits();
 
     const currentContainer = document.getElementById('currentHabits');
-    const completedContainer = document.getElementById('completedHabits');
     const noHabitsMsg = document.getElementById('noHabitsMessage');
-    const noCompletedMsg = document.getElementById('noCompletedMessage');
 
-    // Render current habits
-    if (habits.length === 0) {
+    // Apply filter
+    let filteredHabits = [];
+    if (currentFilter === 'all') {
+        filteredHabits = [...habits, ...completedHabits];
+    } else if (currentFilter === 'completed-today') {
+        filteredHabits = habits.filter(habit => isCompletedToday(habit));
+    } else if (currentFilter === 'not-completed') {
+        filteredHabits = habits.filter(habit => !isCompletedToday(habit));
+    } else if (currentFilter === 'done') {
+        filteredHabits = completedHabits;
+    }
+
+    // Render habits
+    if (filteredHabits.length === 0) {
         noHabitsMsg.style.display = 'block';
         currentContainer.style.display = 'none';
     } else {
         noHabitsMsg.style.display = 'none';
         currentContainer.style.display = 'grid';
-        currentContainer.innerHTML = habits.map(habit => `
+        currentContainer.innerHTML = filteredHabits.map(habit => `
             <div class="habit-card" data-habit-id="${habit.id}">
                 <div class="habit-header">
                     <h3>${habit.name}</h3>
@@ -297,7 +356,13 @@ async function renderHabits() {
                     </div>
                 </div>
                 <div class="habit-progress">
-                    <span>Completed today: ${isCompletedToday(habit) ? '✅' : '⬜'}</span>
+                    <label class="habit-checkbox-label">
+                        <input type="checkbox"
+                               class="habit-checkbox"
+                               ${isCompletedToday(habit) ? 'checked' : ''}
+                               onchange="toggleHabitCompletion('${habit.id}', this.checked)">
+                        <span class="checkbox-text">Completed today</span>
+                    </label>
                 </div>
                 <div class="habit-actions">
                     <button class="btn btn-small btn-success" onclick="markHabitComplete('${habit.id}')" ${isCompletedToday(habit) ? 'disabled' : ''}>
@@ -313,39 +378,20 @@ async function renderHabits() {
             </div>
         `).join('');
     }
+}
 
-    // Render completed habits
-    if (completedHabits.length === 0) {
-        noCompletedMsg.style.display = 'block';
-        completedContainer.style.display = 'none';
-    } else {
-        noCompletedMsg.style.display = 'none';
-        completedContainer.style.display = 'grid';
-        completedContainer.innerHTML = completedHabits.map(habit => `
-            <div class="habit-card habit-completed">
-                <div class="habit-header">
-                    <h3>${habit.name}</h3>
-                    <span class="habit-frequency">${habit.reminderFrequency}</span>
-                </div>
-                ${habit.description ? `<p class="habit-description">${habit.description}</p>` : ''}
-                <div class="habit-stats">
-                    <div class="stat">
-                        <span class="stat-label">Final Streak:</span>
-                        <span class="stat-value">${habit.streak || 0} days</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Status:</span>
-                        <span class="status-badge status-done">Done</span>
-                    </div>
-                </div>
-                <div class="habit-actions">
-                    <button class="btn btn-small btn-danger" onclick="deleteHabit('${habit.id}', true)">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
+// Filter habits based on selected filter
+function filterHabits(filter) {
+    currentFilter = filter;
+
+    // Update active button state
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+
+    // Re-render habits with new filter
+    renderHabits();
 }
 
 // Generate contribution graph (git-style tracker)
