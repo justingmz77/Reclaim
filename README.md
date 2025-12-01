@@ -28,3 +28,18 @@ Reclaim aims to help students:
    ```bash
    git clone https://github.com/justingmz77/Reclaim.git
    cd Reclaim
+
+2. Ensure that you have Node.js installed and `better-sqlite3`
+
+   If not, you can use this [link](https://nodejs.org/en/download) to download Node.js and run `npm install better-sqlite3` to download `better-sqlite3`.
+   
+3. To start the web application, run `npm start` and open the application at the specified address outputted in your terminal.
+
+---
+
+
+## ⭐️ Useful Commands
+- `npm start` to start the application
+- `npm run seed` to seed and create the databases
+- `npm run seed:fresh` to drop and re-seed the database
+- `npm run dev` also runs the server
