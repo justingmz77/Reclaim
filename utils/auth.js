@@ -43,13 +43,16 @@ async function createUser(email, password) {
 async function authenticateUser(email, password) {
   const db_result = await Users.getByEmail(email);
   if (!db_result.success) {
-    throw new Error('Invalid email or password');
+    // User doesn't exist - throw specific error
+    const error = new Error('User does not exist');
+    error.code = 'USER_NOT_FOUND';
+    throw error;
   }
 
   const user = db_result.user;
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
-    throw new Error('Invalid email or password');
+    throw new Error('Invalid password');
   }
 
   return {

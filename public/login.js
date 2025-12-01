@@ -40,7 +40,23 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             }
         } else {
             // Show error message
-            errorMessage.textContent = data.error || 'Invalid email or password. Please try again.';
+            let errorHtml = '';
+            
+            if (data.code === 'USER_NOT_FOUND') {
+                // User doesn't exist - show helpful message with signup link
+                errorHtml = `
+                    <div style="text-align: center;">
+                        <p style="margin-bottom: 0.5rem;">${data.error}</p>
+                        <p style="margin: 0.5rem 0;">${data.suggestion}</p>
+                        <a href="signup.html" style="color: #667eea; text-decoration: underline; font-weight: 500;">Sign up here</a>
+                    </div>
+                `;
+            } else {
+                // Other errors (wrong password, etc.)
+                errorHtml = data.error || 'Invalid email or password. Please try again.';
+            }
+            
+            errorMessage.innerHTML = errorHtml;
             errorMessage.style.display = 'block';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Log In';
