@@ -59,6 +59,66 @@ nav a:hover {
     opacity: 0.8;
 }
 
+/* Dropdown Navigation */
+nav .dropdown {
+    position: relative;
+}
+
+nav .dropdown-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+nav .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+nav .dropdown.open .dropdown-menu {
+    display: block;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+nav .dropdown-menu a {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+nav .dropdown-menu a:last-child {
+    border-bottom: none;
+}
+
+nav .dropdown-menu a:hover {
+    background: #f8f9fa;
+    opacity: 1;
+}
+
 .hero {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -987,6 +1047,21 @@ footer {
     nav {
         flex-direction: column;
         gap: 1rem;
+    }
+
+    nav ul {
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    /* Mobile dropdown adjustments */
+    nav .dropdown-menu {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    nav .dropdown.open .dropdown-menu {
+        animation: none;
     }
 
     nav h1 {
