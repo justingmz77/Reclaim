@@ -1312,6 +1312,54 @@ footer {
     margin-bottom: 3rem;
 }
 
+/* Habit Reminders card: span full row under the top 3 and be a bit shorter */
+.habit-reminders-card {
+    grid-column: 1 / -1;         
+    max-width: 900px;            
+    justify-self: center;         
+    padding: 1.75rem 2.5rem;      
+}
+
+.habit-reminders-card p {
+    margin-bottom: 0.75rem;
+}
+
+
+.habit-reminders-card .reminder-controls {
+    max-width: 420px;        
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;             
+}
+
+.habit-reminders-card .reminder-controls {
+    max-width: 420px;         
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;            
+}
+
+/* Time input styling for clarity */
+#habitReminderTime {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: white;
+}
+
+#habitReminderTime:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+#habitReminderTime:hover {
+    border-color: #667eea;
+}
+
 .dashboard-card {
     background: white;
     border-radius: 15px;
@@ -1399,6 +1447,11 @@ footer {
 
     .dashboard-grid {
         grid-template-columns: 1fr;
+    }
+
+    .habit-reminders-card {
+        grid-column: auto;
+        max-width: 100%;
     }
 
     .stats-grid {
