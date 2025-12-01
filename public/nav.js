@@ -59,6 +59,7 @@ function showLoggedInNav(nav, user) {
     // Organized navigation with dropdowns
     let navItems = [
         { text: 'Home', href: 'index.html' },
+
         {
             text: 'Tracking',
             dropdown: [
@@ -83,6 +84,11 @@ function showLoggedInNav(nav, user) {
     } else {
         navItems.push({ text: 'Resources', href: 'index.html#resources' });
     }
+
+    // Add Dashboard and Logout for logged-in users
+    navItems.push(
+        { text: 'Dashboard', href: '/dashboard' }
+    );
 
     // Admin-only: Manage Content
     if (window.userDataManager?.isAdmin(user)) {
@@ -126,13 +132,6 @@ function showLoggedOutNav(nav) {
         }
     ];
 
-    // Add Resources
-    if (currentPath.includes('index.html')) {
-        navItems.push({ text: 'Resources', href: '#resources' });
-    } else {
-        navItems.push({ text: 'Resources', href: 'index.html#resources' });
-    }
-
     // Add Login and Sign Up for logged-out users (except on login/signup pages)
     if (!currentPath.includes('login.html') && !currentPath.includes('signup.html')) {
         navItems.push(
@@ -142,6 +141,9 @@ function showLoggedOutNav(nav) {
     }
 
     renderNav(nav, navItems);
+    
+    // Add click handlers for protected links
+    addProtectedLinkHandlers();
 }
 
 function renderNav(nav, navItems) {
@@ -164,7 +166,7 @@ function renderNav(nav, navItems) {
 
         // Handle logout link
         if (item.onclick) {
-            return `<li><a href="${item.href}" ${item.id ? `id="${item.id}"` : ''}>${item.text}</a></li>`;
+            return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
         }
 
         // Regular link
@@ -197,6 +199,36 @@ function setupDropdowns() {
         if (!e.target.closest('.dropdown')) {
             document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
         }
+    });
+}
+
+// Add click handlers for protected links (mood tracker, resources, etc.)
+function addProtectedLinkHandlers() {
+    const protectedLinks = document.querySelectorAll('nav a[data-requires-auth="true"]');
+    
+    protectedLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            // Check if user is authenticated
+            const user = await window.userDataManager?.getCurrentUser();
+            
+            if (!user) {
+                e.preventDefault();
+                // Store the intended destination (preserve hash if present)
+                let href = link.getAttribute('href');
+                
+                // If it's a hash link and we're on index.html, preserve the full path
+                if (href.startsWith('#') && window.location.pathname.includes('index.html')) {
+                    href = window.location.pathname + href;
+                } else if (href.startsWith('#')) {
+                    // If it's just a hash and we're not on index, go to index with hash
+                    href = 'index.html' + href;
+                }
+                
+                // Redirect to login with return URL
+                window.location.href = `/login.html?redirect=${encodeURIComponent(href)}`;
+            }
+            // If user is authenticated, allow normal navigation
+        });
     });
 }
 

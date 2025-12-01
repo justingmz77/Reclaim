@@ -42,6 +42,29 @@
                     <a href="index.html#resources" class="btn btn-primary">View Resources</a>
                 </div>
 
+                <!-- Habit Reminders card -->
+                <div class="dashboard-card habit-reminders-card">
+                    <h3>Habit Reminders</h3>
+                    <p>Set a daily reminder time to check in on your habits.</p>
+
+                    <div class="reminder-controls">
+                        <label for="habitReminderTime" class="reminder-label">Reminder time</label>
+
+                        <input
+                            type="time"
+                            id="habitReminderTime"
+                        >
+
+                        <button class="btn btn-primary" id="saveHabitReminderBtn">
+                            Save Reminder
+                        </button>
+
+                        <p class="reminder-status" id="habitReminderStatus">
+                            Pick a time to save a reminder.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Admin-only card -->
                 <div class="dashboard-card" id="adminManageCard" style="display:none;">
                     <h3>Manage Content</h3>
