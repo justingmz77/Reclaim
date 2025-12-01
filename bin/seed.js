@@ -1,6 +1,7 @@
 let database = require('../utils/database');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 
@@ -9,16 +10,8 @@ const shouldClearDB = process.argv.includes('--fresh');
 
 const SEED_RESOLVERS = {
     users: (seedData) => {
-        console.log(seedData);
-        // {
-        //     id: '1764518580787sy7vsuwkn',
-        //     email: 'kieranb@my.yorku.ca',
-        //     password: '$2b$10$Cvdvc.PpSwH6X6TSsGAIH.luwa6n7TCaJ60P3bX/bHyYsk.bytLhy',
-        //     role: 'student',
-        //     createdAt: '2025-11-30T16:03:00.787Z'
-        //   }
-          
-        return database.Users.add(seedData.id, seedData.email, seedData.password, seedData.role, seedData.createdAt);
+        const hashedPassword = bcrypt.hashSync(seedData.password, 10);
+        return database.Users.add(seedData.id, seedData.email, hashedPassword, seedData.role, seedData.createdAt);
     }
 };
 
