@@ -55,39 +55,53 @@ function showAuthNav(nav, page) {
 function showLoggedInNav(nav, user) {
     // Get current page path
     const currentPath = window.location.pathname;
-    
-    // Base navigation items (common to all pages)
-    let navItems = [
-        { text: 'Home', href: 'index.html' },
-        { text: 'Mood Tracker', href: 'index.html#mood' },
-        { text: 'Habits', href: 'habits.html' },
-        { text: 'Journal', href: 'journal.html' },
-        { text: 'Wellness Tools', href: 'wellness-tools.html' },
-        { text: 'Games', href: 'games.html' }
+
+    // Organized navigation items by category
+    const navCategories = [
+        {
+            label: 'Home',
+            items: [
+                { text: 'Home', href: 'index.html' }
+            ]
+        },
+        {
+            label: 'Wellness',
+            items: [
+                { text: 'Mood Tracker', href: 'index.html#mood' },
+                { text: 'Habits', href: 'habits.html' },
+                { text: 'Journal', href: 'journal.html' },
+                { text: 'Wellness Tools', href: 'wellness-tools.html' }
+            ]
+        },
+        {
+            label: 'Support',
+            items: [
+                { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources' }
+            ]
+        },
+        {
+            label: 'Activities',
+            items: [
+                { text: 'Games', href: 'games.html' }
+            ]
+        },
+        {
+            label: 'Account',
+            items: [
+                { text: 'Dashboard', href: '/dashboard' }
+            ]
+        }
     ];
 
-    // Add Resources link for index page
-    if (currentPath.includes('index.html')) {
-        navItems.push({ text: 'Resources', href: '#resources' });
-    } else {
-        navItems.push({ text: 'Resources', href: 'index.html#resources' });
-    }
-
-    // Add Dashboard and Logout for logged-in users
-    navItems.push(
-        { text: 'Dashboard', href: '/dashboard' }
-    );
-
-    // Admin-only: Manage Content
+    // Add admin item if applicable
     if (window.userDataManager?.isAdmin(user)) {
-        navItems.push({ text: 'Manage Content', href: 'admin.html' });
+        navCategories[4].items.push({ text: 'Manage Content', href: 'admin.html' });
     }
 
-    navItems.push(
-        { text: 'Logout', href: '#', id: 'logoutLink', onclick: 'logout()' }
-    );
+    // Add logout
+    navCategories[4].items.push({ text: 'Logout', href: '#', id: 'logoutLink', onclick: 'logout()' });
 
-    renderNav(nav, navItems);
+    renderCategorizedNav(nav, navCategories);
 
     // Add logout handler
     const logoutLink = document.getElementById('logoutLink');
@@ -101,27 +115,54 @@ function showLoggedInNav(nav, user) {
 
 function showLoggedOutNav(nav) {
     const currentPath = window.location.pathname;
-    
-    let navItems = [
-        { text: 'Home', href: 'index.html' },
-        { text: 'Mood Tracker', href: 'index.html#mood', requiresAuth: true },
-        { text: 'Habits', href: 'habits.html', requiresAuth: true },
-        { text: 'Journal', href: 'journal.html', requiresAuth: true },
-        { text: 'Wellness Tools', href: 'wellness-tools.html', requiresAuth: true },
-        { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true },
-        { text: 'Games', href: 'games.html', requiresAuth: true }
+
+    // Organized navigation items by category (logged out)
+    const navCategories = [
+        {
+            label: 'Home',
+            items: [
+                { text: 'Home', href: 'index.html' }
+            ]
+        },
+        {
+            label: 'Wellness',
+            items: [
+                { text: 'Mood Tracker', href: 'index.html#mood', requiresAuth: true },
+                { text: 'Habits', href: 'habits.html', requiresAuth: true },
+                { text: 'Journal', href: 'journal.html', requiresAuth: true },
+                { text: 'Wellness Tools', href: 'wellness-tools.html', requiresAuth: true }
+            ]
+        },
+        {
+            label: 'Support',
+            items: [
+                { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true }
+            ]
+        },
+        {
+            label: 'Activities',
+            items: [
+                { text: 'Games', href: 'games.html', requiresAuth: true }
+            ]
+        }
     ];
 
-    // Add Login and Sign Up for logged-out users (except on login/signup pages)
+    // Add Login and Sign Up as flat links for logged-out users (except on login/signup pages)
     if (!currentPath.includes('login.html') && !currentPath.includes('signup.html')) {
-        navItems.push(
-            { text: 'Login', href: 'login.html' },
-            { text: 'Sign Up', href: 'signup.html' }
-        );
+        navCategories.push({
+            label: 'Login',
+            items: [{ text: 'Login', href: 'login.html' }],
+            isFlat: true
+        });
+        navCategories.push({
+            label: 'Sign Up',
+            items: [{ text: 'Sign Up', href: 'signup.html' }],
+            isFlat: true
+        });
     }
 
-    renderNav(nav, navItems);
-    
+    renderCategorizedNav(nav, navCategories);
+
     // Add click handlers for protected links
     addProtectedLinkHandlers();
 }
@@ -131,14 +172,81 @@ function renderNav(nav, navItems) {
         const dataAttrs = [];
         if (item.id) dataAttrs.push(`id="${item.id}"`);
         if (item.requiresAuth) dataAttrs.push(`data-requires-auth="true"`);
-        
+
         const attrs = dataAttrs.length > 0 ? ' ' + dataAttrs.join(' ') : '';
-        
+
         if (item.onclick) {
             return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
         }
         return `<li><a href="${item.href}"${attrs}>${item.text}</a></li>`;
     }).join('');
+}
+
+function renderCategorizedNav(nav, navCategories) {
+    nav.innerHTML = navCategories.map(category => {
+        const items = category.items.map(item => {
+            const dataAttrs = [];
+            if (item.id) dataAttrs.push(`id="${item.id}"`);
+            if (item.requiresAuth) dataAttrs.push(`data-requires-auth="true"`);
+
+            const attrs = dataAttrs.length > 0 ? ' ' + dataAttrs.join(' ') : '';
+
+            return `<a href="${item.href}"${attrs}>${item.text}</a>`;
+        }).join('');
+
+        // If category is flat (Login/Sign Up), render as direct link
+        if (category.isFlat) {
+            return `<li>${items}</li>`;
+        }
+
+        // If category only has one item and it's Home, render without dropdown
+        if (category.label === 'Home') {
+            return `<li>${items}</li>`;
+        }
+
+        return `
+            <li class="nav-category">
+                <span class="nav-category-label">${category.label} ▼</span>
+                <div class="nav-dropdown">
+                    ${items}
+                </div>
+            </li>
+        `;
+    }).join('');
+
+    // Add mobile menu toggle functionality
+    setupMobileMenuToggle();
+}
+
+function setupMobileMenuToggle() {
+    // Only for mobile devices
+    if (window.innerWidth <= 768) {
+        const navCategories = document.querySelectorAll('.nav-category');
+
+        navCategories.forEach(category => {
+            const label = category.querySelector('.nav-category-label');
+
+            label.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Toggle active class
+                category.classList.toggle('active');
+
+                // Close other open categories
+                navCategories.forEach(other => {
+                    if (other !== category) {
+                        other.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // Close menus when clicking outside
+        document.addEventListener('click', () => {
+            navCategories.forEach(category => {
+                category.classList.remove('active');
+            });
+        });
+    }
 }
 
 // Add click handlers for protected links (mood tracker, resources, etc.)
