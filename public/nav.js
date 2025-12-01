@@ -62,7 +62,8 @@ function showLoggedInNav(nav, user) {
         { text: 'Mood Tracker', href: 'index.html#mood' },
         { text: 'Habits', href: 'habits.html' },
         { text: 'Journal', href: 'journal.html' },
-        { text: 'Wellness Tools', href: 'wellness-tools.html' }
+        { text: 'Wellness Tools', href: 'wellness-tools.html' },
+        { text: 'Games', href: 'games.html' }
     ];
 
     // Add Resources link for index page
@@ -107,7 +108,8 @@ function showLoggedOutNav(nav) {
         { text: 'Habits', href: 'habits.html', requiresAuth: true },
         { text: 'Journal', href: 'journal.html', requiresAuth: true },
         { text: 'Wellness Tools', href: 'wellness-tools.html', requiresAuth: true },
-        { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true }
+        { text: 'Resources', href: currentPath.includes('index.html') ? '#resources' : 'index.html#resources', requiresAuth: true },
+        { text: 'Games', href: 'games.html', requiresAuth: true }
     ];
 
     // Add Login and Sign Up for logged-out users (except on login/signup pages)

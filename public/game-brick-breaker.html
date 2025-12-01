@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brick Breaker - Reclaim</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-header h2 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .game-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #gameCanvas {
+            border: 3px solid #667eea;
+            border-radius: 12px;
+            background: #1a1a2e;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            cursor: none;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-info {
+            text-align: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .control-info p {
+            margin: 0.3rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .control-info strong {
+            color: #667eea;
+        }
+
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content .final-score {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 1rem 0;
+        }
+
+        .modal-content .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .modal-content .modal-stat {
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .modal-content .modal-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .modal-content .modal-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .leaderboard {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e1e4e8;
+        }
+
+        .leaderboard h4 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .leaderboard-item.personal-best {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 2px solid #667eea;
+        }
+
+        .leaderboard-rank {
+            font-weight: 700;
+            color: #667eea;
+            margin-right: 0.5rem;
+        }
+
+        .leaderboard-score {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .lives-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .life-icon {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            transition: opacity 0.3s;
+        }
+
+        .life-icon.lost {
+            opacity: 0.2;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 0 1rem;
+            }
+
+            .game-card {
+                padding: 1.5rem 1rem;
+            }
+
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+            }
+
+            .game-stats {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .modal-content {
+                padding: 2rem 1.5rem;
+            }
+
+            .modal-content h3 {
+                font-size: 1.5rem;
+            }
+
+            .modal-content .final-score {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Reclaim</h1>
+            <ul>
+                <!-- Navigation will be populated by nav.js -->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <div class="game-card">
+                <div class="game-header">
+                    <h2>Brick Breaker</h2>
+                    <p class="game-subtitle">Break all the bricks to advance to the next level!</p>
+                </div>
+
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="scoreDisplay">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value" id="levelDisplay">1</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Lives</div>
+                        <div class="stat-value" id="livesDisplay">3</div>
+                        <div class="lives-indicator" id="livesIndicator">
+                            <div class="life-icon"></div>
+                            <div class="life-icon"></div>
+                            <div class="life-icon"></div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">High Score</div>
+                        <div class="stat-value" id="highScoreDisplay">0</div>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="gameCanvas" width="800" height="600"></canvas>
+                </div>
+
+                <div class="game-controls">
+                    <button id="startButton" class="btn btn-primary">Start Game</button>
+                    <button id="pauseButton" class="btn btn-secondary" style="display: none;">Pause</button>
+                </div>
+
+                <div class="control-info">
+                    <p><strong>Desktop:</strong> Move mouse left/right OR use Arrow Keys</p>
+                    <p><strong>Mobile:</strong> Touch and drag to move paddle</p>
+                    <p><strong>Tip:</strong> Hit the ball with the edge of the paddle for angled shots!</p>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <button class="btn btn-secondary" onclick="window.location.href='wellness-tools.html'">
+                    Back to Games & Tools
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="game-modal">
+        <div class="modal-content">
+            <h3>Game Over!</h3>
+            <p>Final Score</p>
+            <div class="final-score" id="finalScore">0</div>
+
+            <div class="stats-grid">
+                <div class="modal-stat">
+                    <div class="modal-stat-label">Level Reached</div>
+                    <div class="modal-stat-value" id="finalLevel">1</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-label">Bricks Broken</div>
+                    <div class="modal-stat-value" id="finalBricks">0</div>
+                </div>
+            </div>
+
+            <div class="leaderboard" id="leaderboardSection">
+                <h4>Top Scores</h4>
+                <ul class="leaderboard-list" id="leaderboardList">
+                    <li class="leaderboard-item">
+                        <span>Loading...</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="playAgainButton">Play Again</button>
+                <button class="btn btn-secondary" id="closeModalButton">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="userDataManager.js"></script>
+    <script src="nav.js"></script>
+    <script src="game-brick-breaker.js"></script>
+</body>
+</html>
