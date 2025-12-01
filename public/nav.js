@@ -88,7 +88,8 @@ function showLoggedInNav(nav, user) {
         {
             label: 'Account',
             items: [
-                { text: 'Dashboard', href: '/dashboard' }
+                { text: 'Dashboard', href: '/dashboard' },
+                { text: 'Analytics', href: 'analytics.html' }
             ]
         }
     ];
@@ -143,6 +144,12 @@ function showLoggedOutNav(nav) {
             label: 'Activities',
             items: [
                 { text: 'Games', href: 'games.html', requiresAuth: true }
+            ]
+        },
+        {
+            label: 'Account',
+            items: [
+                { text: 'Analytics', href: 'analytics.html', requiresAuth: true }
             ]
         }
     ];

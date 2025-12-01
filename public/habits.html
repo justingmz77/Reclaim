@@ -25,65 +25,68 @@
             </div>
         </section>
 
-        <!-- Add New Habit Section -->
-        <section class="section">
-            <h2>Create New Habit</h2>
-            <div class="habit-form-container">
-                <form id="addHabitForm" class="habit-form">
-                    <div class="form-group">
-                        <label for="habitName">Habit Name</label>
-                        <input type="text" id="habitName" name="habitName" placeholder="e.g., 30 minutes of exercise" required>
+        <!-- Habits Content with Sidebar Layout -->
+        <div class="habits-layout">
+            <!-- Sidebar: Add New Habit Form -->
+            <aside class="habits-sidebar">
+                <div class="sidebar-sticky">
+                    <h3>Create New Habit</h3>
+                    <form id="addHabitForm" class="habit-form">
+                        <div class="form-group">
+                            <label for="habitName">Habit Name</label>
+                            <input type="text" id="habitName" name="habitName" placeholder="e.g., Exercise" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="habitDescription">Description</label>
+                            <textarea id="habitDescription" name="habitDescription" placeholder="Optional details..." rows="2"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reminderFrequency">Frequency</label>
+                            <select id="reminderFrequency" name="reminderFrequency" required>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="bi-weekly">Bi-weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Add Habit</button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main Content: Habits List -->
+            <div class="habits-main">
+                <!-- Current Habits Section -->
+                <section class="section-compact">
+                    <div class="habits-header">
+                        <h2>Your Current Habits</h2>
+                        <div class="habit-filters">
+                            <button class="filter-btn active" data-filter="all" onclick="filterHabits('all')">All</button>
+                            <button class="filter-btn" data-filter="completed-today" onclick="filterHabits('completed-today')">Completed Today</button>
+                            <button class="filter-btn" data-filter="not-completed" onclick="filterHabits('not-completed')">Not Completed</button>
+                            <button class="filter-btn" data-filter="done" onclick="filterHabits('done')">Done</button>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="habitDescription">Description (Optional)</label>
-                        <textarea id="habitDescription" name="habitDescription" placeholder="Add details about this habit..." rows="3"></textarea>
+                    <div id="currentHabits" class="habits-grid">
+                        <!-- Habits will be dynamically inserted here -->
                     </div>
-
-                    <div class="form-group">
-                        <label for="reminderFrequency">Reminder Frequency</label>
-                        <select id="reminderFrequency" name="reminderFrequency" required>
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="bi-weekly">Bi-weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
+                    <div id="noHabitsMessage" class="no-data-message">
+                        <p>No habits yet. Create your first habit!</p>
                     </div>
+                </section>
 
-                    <button type="submit" class="btn btn-primary">Add Habit</button>
-                </form>
+                <!-- Streaks & Rewards Section -->
+                <section class="section-compact">
+                    <h2>Your Streaks & Rewards</h2>
+                    <div id="streaksContainer" class="streaks-container">
+                        <!-- Streaks will be dynamically inserted here -->
+                    </div>
+                </section>
             </div>
-        </section>
-
-        <!-- Current Habits Section -->
-        <section class="section">
-            <h2>Your Current Habits</h2>
-            <div id="currentHabits" class="habits-grid">
-                <!-- Habits will be dynamically inserted here -->
-            </div>
-            <div id="noHabitsMessage" class="no-data-message">
-                <p>No habits yet. Create your first habit above!</p>
-            </div>
-        </section>
-
-        <!-- Completed Habits Section -->
-        <section class="section">
-            <h2>Completed Habits</h2>
-            <div id="completedHabits" class="habits-grid">
-                <!-- Completed habits will be dynamically inserted here -->
-            </div>
-            <div id="noCompletedMessage" class="no-data-message">
-                <p>No completed habits yet. Keep working on your goals!</p>
-            </div>
-        </section>
-
-        <!-- Streaks & Rewards Section -->
-        <section class="streaks-section">
-            <h2>Your Streaks & Rewards</h2>
-            <div id="streaksContainer" class="streaks-container">
-                <!-- Streaks will be dynamically inserted here -->
-            </div>
-        </section>
+        </div>
     </main>
 
     <footer>
