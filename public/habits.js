@@ -49,54 +49,36 @@ class Habit {
     }
 }
 
-// Get habits from localStorage (user-specific)
+// Get habits from API
 async function getHabits() {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        return []; // Return empty if not logged in
-    }
-    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.HABITS, user.id);
-    return JSON.parse(localStorage.getItem(storageKey) || '[]');
-}
-
-// Save habits to localStorage (user-specific)
-async function saveHabits(habits) {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        console.error('Cannot save habits: User not authenticated');
-        return;
-    }
-    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.HABITS, user.id);
-    localStorage.setItem(storageKey, JSON.stringify(habits));
-    logAction('HABITS_UPDATED', { count: habits.length });
-}
-
-// Get completed habits from localStorage (user-specific)
-async function getCompletedHabits() {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        return []; // Return empty array when not logged in
-    }
-    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.COMPLETED_HABITS, user.id);
-    const raw = localStorage.getItem(storageKey);
     try {
-        const parsed = JSON.parse(raw || '[]');
-        return Array.isArray(parsed) ? parsed : []; // ensure array
-    } catch (err) {
-        console.error('Failed to parse completed habits from localStorage:', err);
-        return []; // fallback to empty array on parse error
+        const response = await fetch('/api/habits');
+        if (!response.ok) {
+            if (response.status === 401) return [];
+            throw new Error('Failed to fetch habits');
+        }
+        const data = await response.json();
+        return data.habits || [];
+    } catch (error) {
+        console.error('Error fetching habits:', error);
+        return [];
     }
 }
 
-// Save completed habits to localStorage (user-specific)
-async function saveCompletedHabits(habits) {
-    const user = await window.userDataManager?.getCurrentUser();
-    if (!user) {
-        console.error('Cannot save completed habits: User not authenticated');
-        return;
+// Get completed habits from API
+async function getCompletedHabits() {
+    try {
+        const response = await fetch('/api/habits?includeCompleted=true');
+        if (!response.ok) {
+            if (response.status === 401) return [];
+            throw new Error('Failed to fetch completed habits');
+        }
+        const data = await response.json();
+        return (data.habits || []).filter(h => h.status === 'done');
+    } catch (error) {
+        console.error('Error fetching completed habits:', error);
+        return [];
     }
-    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.COMPLETED_HABITS, user.id);
-    localStorage.setItem(storageKey, JSON.stringify(habits));
 }
 
 // Calculate streak for a habit
@@ -132,31 +114,39 @@ function calculateStreak(habit) {
 
 // Mark habit as completed for today
 async function markHabitComplete(habitId) {
-    const habits = await getHabits();
-    const habit = habits.find(h => h.id === habitId);
-
-    if (!habit) return;
-
     const today = new Date().toISOString().split('T')[0];
 
-    if (!habit.completionHistory) {
-        habit.completionHistory = [];
-    }
+    try {
+        const response = await fetch(`/api/habits/${habitId}/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: today })
+        });
 
-    // Check if already completed today
-    if (!habit.completionHistory.includes(today)) {
-        habit.completionHistory.push(today);
-        habit.lastCompletedDate = today;
-        habit.streak = calculateStreak(habit);
+        if (!response.ok) {
+            const error = await response.json();
+            if (error.error === 'Habit already completed on this date') {
+                return; // Already completed, silently return
+            }
+            throw new Error(error.error || 'Failed to complete habit');
+        }
 
-        await saveHabits(habits);
-        await logAction('HABIT_COMPLETED', { habitId, habitName: habit.name, streak: habit.streak });
+        const data = await response.json();
+        await logAction('HABIT_COMPLETED', { habitId, streak: data.streak });
 
         // Check for streak rewards (Use Case 8)
-        checkStreakRewards(habit);
+        const habits = await getHabits();
+        const habit = habits.find(h => h.id === habitId);
+        if (habit) {
+            habit.streak = data.streak;
+            checkStreakRewards(habit);
+        }
 
         await renderHabits();
         await renderStreaks();
+    } catch (error) {
+        console.error('Error completing habit:', error);
+        alert('Failed to mark habit as complete. Please try again.');
     }
 }
 
@@ -201,54 +191,56 @@ function showRewardNotification(habit) {
 
 // Mark habit as done (status change)
 async function markHabitDone(habitId) {
-    const habits = await getHabits();
-    const habitIndex = habits.findIndex(h => h.id === habitId);
+    try {
+        const habits = await getHabits();
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
 
-    if (habitIndex === -1) return;
+        const response = await fetch(`/api/habits/${habitId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: habit.name,
+                description: habit.description,
+                reminderFrequency: habit.reminderFrequency,
+                status: 'done',
+                streak: habit.streak,
+                lastCompletedDate: habit.lastCompletedDate
+            })
+        });
 
-    const habit = habits[habitIndex];
-    habit.status = 'done';
+        if (!response.ok) {
+            throw new Error('Failed to update habit status');
+        }
 
-    // Move to completed habits
-    const completedHabits = await getCompletedHabits();
-    completedHabits.push(habit);
-    await saveCompletedHabits(completedHabits);
-
-    // Remove from current habits
-    habits.splice(habitIndex, 1);
-    await saveHabits(habits);
-
-    await logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
-
-    await renderHabits();
+        await logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
+        await renderHabits();
+    } catch (error) {
+        console.error('Error marking habit as done:', error);
+        alert('Failed to mark habit as done. Please try again.');
+    }
 }
 
 // Delete habit
 async function deleteHabit(habitId, isCompleted = false) {
     if (!confirm('Are you sure you want to delete this habit?')) return;
 
-    if (isCompleted) {
-        const completedHabits = await getCompletedHabits();
-        const habit = completedHabits.find(h => h.id === habitId);
-        const filtered = completedHabits.filter(h => h.id !== habitId);
-        await saveCompletedHabits(filtered);
+    try {
+        const response = await fetch(`/api/habits/${habitId}`, {
+            method: 'DELETE'
+        });
 
-        if (habit) {
-            await logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: true });
+        if (!response.ok) {
+            throw new Error('Failed to delete habit');
         }
-    } else {
-        const habits = await getHabits();
-        const habit = habits.find(h => h.id === habitId);
-        const filtered = habits.filter(h => h.id !== habitId);
-        await saveHabits(filtered);
 
-        if (habit) {
-            await logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: false });
-        }
+        await logAction('HABIT_DELETED', { habitId, wasCompleted: isCompleted });
+        await renderHabits();
+        await renderStreaks();
+    } catch (error) {
+        console.error('Error deleting habit:', error);
+        alert('Failed to delete habit. Please try again.');
     }
-
-    await renderHabits();
-    await renderStreaks();
 }
 
 // Check if habit was completed today
@@ -523,22 +515,33 @@ document.getElementById('addHabitForm').addEventListener('submit', async functio
         return;
     }
 
-    const habit = new Habit(name, description, reminderFrequency);
-    const habits = await getHabits();
-    habits.push(habit);
-    await saveHabits(habits);
+    try {
+        const response = await fetch('/api/habits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, reminderFrequency })
+        });
 
-    await logAction('HABIT_CREATED', { habitId: habit.id, habitName: habit.name });
+        if (!response.ok) {
+            throw new Error('Failed to create habit');
+        }
 
-    // Reset form
-    this.reset();
+        const data = await response.json();
+        await logAction('HABIT_CREATED', { habitId: data.habit.id, habitName: name });
 
-    // Render updated habits
-    await renderHabits();
-    await renderStreaks();
+        // Reset form
+        this.reset();
 
-    // Show success message
-    alert('Habit created successfully!');
+        // Render updated habits
+        await renderHabits();
+        await renderStreaks();
+
+        // Show success message
+        alert('Habit created successfully!');
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        alert('Failed to create habit. Please try again.');
+    }
 });
 
 // Initial render on page load

@@ -62,26 +62,39 @@ document.addEventListener("DOMContentLoaded", async () => {
       historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your journal entries.</div>';
       return;
     }
-    
-    const storageKey = window.userDataManager.getUserStorageKey("journalEntries", user.id);
-    const entries = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    historyContainer.innerHTML = "";
 
-    if (entries.length === 0) {
-      historyContainer.innerHTML = '<div class="no-mood-history">No journal entries yet. Start writing!</div>';
-      return;
+    try {
+      // Fetch entries from API
+      const response = await fetch('/api/journal-entries?limit=100');
+      if (!response.ok) {
+        throw new Error('Failed to fetch journal entries');
+      }
+
+      const data = await response.json();
+      const entries = data.entries || [];
+      historyContainer.innerHTML = "";
+
+      if (entries.length === 0) {
+        historyContainer.innerHTML = '<div class="no-mood-history">No journal entries yet. Start writing!</div>';
+        return;
+      }
+
+      entries.forEach(entry => {
+        const card = document.createElement("div");
+        card.classList.add("journal-card");
+        // Format the ISO date to a more readable format
+        const displayDate = new Date(entry.createdAt).toLocaleString();
+        card.innerHTML = `
+          <h4>${entry.title}</h4>
+          <p>${entry.content}</p>
+          <small>${displayDate}</small>
+        `;
+        historyContainer.appendChild(card);
+      });
+    } catch (error) {
+      console.error('Error loading journal entries:', error);
+      historyContainer.innerHTML = '<div class="no-mood-history">Error loading journal entries. Please try again.</div>';
     }
-
-    entries.forEach(entry => {
-      const card = document.createElement("div");
-      card.classList.add("journal-card");
-      card.innerHTML = `
-        <h4>${entry.title}</h4>
-        <p>${entry.content}</p>
-        <small>${entry.date}</small>
-      `;
-      historyContainer.appendChild(card);
-    });
   }
 
   updateJournalHistory();
@@ -136,18 +149,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     const content = journalTextarea.value.trim();
     if (!content) return;
 
-    const storageKey = window.userDataManager.getUserStorageKey("journalEntries", user.id);
-    const entries = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    entries.unshift({ title, content, date: new Date().toLocaleString() });
-    localStorage.setItem(storageKey, JSON.stringify(entries));
+    try {
+      // Save to API
+      const response = await fetch('/api/journal-entries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title, content })
+      });
 
-    journalTextarea.value = "";
-    journalTitleInput.value = "";
-    saveBtn.disabled = true;
+      if (!response.ok) {
+        throw new Error('Failed to save journal entry');
+      }
 
-    updateJournalHistory();
+      // Clear form
+      journalTextarea.value = "";
+      journalTitleInput.value = "";
+      saveBtn.disabled = true;
 
-    moodMessage.textContent = "Journal entry saved!";
-    setTimeout(() => (moodMessage.textContent = ""), 3000);
+      // Update history display
+      await updateJournalHistory();
+
+      // Show success message
+      moodMessage.textContent = "Journal entry saved!";
+      setTimeout(() => (moodMessage.textContent = ""), 3000);
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      moodMessage.textContent = "Failed to save journal entry. Please try again.";
+      setTimeout(() => (moodMessage.textContent = ""), 3000);
+    }
   });
 });
