@@ -52,11 +52,120 @@ nav ul {
 nav a {
     color: white;
     text-decoration: none;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background-color 0.3s;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: block;
 }
 
 nav a:hover {
     opacity: 0.8;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Categorized Navigation */
+.nav-category {
+    position: relative;
+}
+
+.nav-category-label {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+    font-weight: 500;
+}
+
+.nav-category:hover .nav-category-label {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    min-width: 200px;
+    margin-top: 0;
+    overflow: hidden;
+    z-index: 1000;
+    border: 2px solid #667eea;
+}
+
+.nav-category:hover .nav-dropdown,
+.nav-dropdown:hover {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-dropdown a {
+    color: #333;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0;
+    white-space: nowrap;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.nav-dropdown a:last-child {
+    border-bottom: none;
+}
+
+.nav-dropdown a:hover {
+    background-color: #f5f5f5;
+    opacity: 1;
+}
+
+/* Mobile responsive navigation */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    nav ul {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .nav-category {
+        width: 100%;
+    }
+
+    .nav-dropdown {
+        position: static;
+        box-shadow: none;
+        background: rgba(255, 255, 255, 0.1);
+        margin-top: 0;
+        margin-left: 1rem;
+    }
+
+    .nav-dropdown a {
+        color: white;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-dropdown a:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-category:hover .nav-dropdown {
+        display: none;
+    }
+
+    .nav-category.active .nav-dropdown {
+        display: flex;
+    }
 }
 
 .hero {
