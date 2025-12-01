@@ -39,6 +39,20 @@ function requireAuth(req, res, next) {
   }
 }
 
+// middleware to check if user is admin
+function requireAdmin(req, res, next) {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  const result = auth.getUserById(req.session.userId);
+  if (!result.success || !result.user || result.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  next();
+}
+
 // Routes
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -108,6 +122,14 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (error) {
+    // Check if user doesn't exist
+    if (error.code === 'USER_NOT_FOUND') {
+      return res.status(404).json({ 
+        error: error.message,
+        code: 'USER_NOT_FOUND',
+        suggestion: 'Sign up to create an account'
+      });
+    }
     res.status(401).json({ error: error.message });
   }
 });
@@ -143,9 +165,124 @@ app.get('/dashboard', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-app.get('/users', (req, res) => {
-  const users = Users.all();
-  res.json(users);
+// Admin-only: User management endpoints
+app.get('/api/admin/users', requireAdmin, (req, res) => {
+  const result = Users.all();
+  if (result.success) {
+    // Don't send passwords in response
+    const usersWithoutPasswords = result.users.map(({ password, ...user }) => user);
+    res.json({ success: true, users: usersWithoutPasswords });
+  } else {
+    res.status(500).json({ error: result.error });
+  }
+});
+
+app.post('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    if (!role || !['student', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Role must be "student" or "admin"' });
+    }
+
+    // Validate YorkU email
+    if (!auth.isValidYorkUEmail(email)) {
+      return res.status(400).json({ error: 'Email must be a valid YorkU email (@my.yorku.ca)' });
+    }
+
+    // Check if user already exists
+    const existingUser = Users.getByEmail(email);
+    if (existingUser.success) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Validate password
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long and include an uppercase letter, a number, and a special character (!@#$%^&*)' });
+    }
+
+    // Hash password using auth module
+    const hashedPassword = await require('bcrypt').hash(password, 10);
+
+    // Create user
+    const user = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: role,
+      createdAt: new Date().toISOString()
+    };
+
+    const addResult = Users.add(user.id, user.email, user.password, user.role, user.createdAt);
+    
+    if (addResult.success) {
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        }
+      });
+    } else {
+      res.status(500).json({ error: addResult.error });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/admin/users/:id', requireAdmin, (req, res) => {
+  const userId = req.params.id;
+  const { role } = req.body;
+
+  // Validate role if provided
+  if (role && !['student', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be "student" or "admin"' });
+  }
+
+  // Prevent admin from changing their own role
+  if (userId === req.session.userId && role) {
+    return res.status(400).json({ error: 'Cannot change your own role' });
+  }
+
+  const result = Users.update(userId, { role });
+  
+  if (result.success) {
+    // Return updated user info
+    const userResult = Users.findById(userId);
+    if (userResult.success && userResult.user) {
+      const { password, ...userWithoutPassword } = userResult.user;
+      res.json({ success: true, user: userWithoutPassword });
+    } else {
+      res.json({ success: true, message: 'User updated successfully' });
+    }
+  } else {
+    res.status(404).json({ error: result.error });
+  }
+});
+
+app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
+  const userId = req.params.id;
+  
+  // Prevent admin from deleting themselves
+  if (userId === req.session.userId) {
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+  }
+
+  const result = Users.delete(userId);
+  
+  if (result.success) {
+    res.json({ success: true, message: 'User deleted successfully' });
+  } else {
+    res.status(404).json({ error: result.error });
+  }
 });
 
 // Game Scores API endpoints

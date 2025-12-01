@@ -127,6 +127,132 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   
+    // User management functions
+    async function fetchUsers() {
+      const res = await fetch('/api/admin/users');
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        alert(e.error || 'Failed to fetch users');
+        return [];
+      }
+      const data = await res.json();
+      return data.users || [];
+    }
+
+    async function addUser(email, password, role) {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role })
+      });
+
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        alert(e.error || 'Failed to add user');
+        return false;
+      }
+      return true;
+    }
+
+    async function updateUserRole(id, newRole) {
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+      });
+
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        alert(e.error || 'Failed to update user role');
+        return false;
+      }
+      return true;
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Delete this user? This action cannot be undone.')) return;
+      
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        alert(e.error || 'Failed to delete user');
+        return false;
+      }
+      return true;
+    }
+
+    async function renderUsers() {
+      const container = document.getElementById('usersList');
+      const users = await fetchUsers();
+      
+      // Get current user to prevent self-role change
+      const currentUser = await window.userDataManager?.getCurrentUser();
+      const currentUserId = currentUser?.id;
+
+      if (!users.length) {
+        container.innerHTML = '<div class="no-data-message">No users yet. Add one above!</div>';
+        return;
+      }
+
+      container.innerHTML = users
+          .map(
+            (user) => {
+              const isCurrentUser = user.id === currentUserId;
+              return `
+          <div class="admin-row">
+            <div class="admin-row-main">
+              <div class="admin-field">
+                <label>Email</label>
+                <input type="text" value="${user.email.replace(/"/g, '&quot;')}" readonly />
+              </div>
+              <div class="admin-field">
+                <label>Role</label>
+                <select data-role-select data-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>
+                  <option value="student" ${user.role === 'student' ? 'selected' : ''}>Student</option>
+                  <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+                ${isCurrentUser ? '<small style="color: #666; font-size: 0.85em;">(Cannot change your own role)</small>' : ''}
+              </div>
+              <div class="admin-field">
+                <label>Created</label>
+                <input type="text" value="${new Date(user.createdAt).toLocaleDateString()}" readonly />
+              </div>
+            </div>
+            <div class="admin-row-actions">
+              <button class="btn btn-small btn-success" data-action="save-role" data-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>Save Role</button>
+              <button class="btn btn-small btn-danger" data-action="delete-user" data-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>Delete</button>
+            </div>
+          </div>`;
+            }
+          )
+          .join('');
+
+      container.querySelectorAll('button[data-action="save-role"]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const userId = btn.dataset.id;
+            const select = container.querySelector(`select[data-id="${userId}"]`);
+            const newRole = select.value;
+            
+            const success = await updateUserRole(userId, newRole);
+            if (success) {
+              renderUsers();
+            }
+          });
+      });
+
+      container.querySelectorAll('button[data-action="delete-user"]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const success = await deleteUser(btn.dataset.id);
+          if (success) {
+            renderUsers();
+          }
+        });
+      });
+    }
+
     function renderAll() {
       renderList('prompts', 'promptsList', [
         { key: 'title', label: 'Title' },
@@ -140,6 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { key: 'title', label: 'Title' },
         { key: 'instructions', label: 'Instructions' }
       ]);
+      renderUsers();
     }
   
     renderAll();
@@ -167,6 +294,33 @@ document.addEventListener('DOMContentLoaded', async () => {
       const instructions = prompt('Instructions');
       if (instructions === null) return;
       await saveItem('exercises', { id: newId(), title: title.trim(), instructions: instructions.trim() }, 'create');
+    });
+
+    document.getElementById('addUserBtn').addEventListener('click', async () => {
+      const email = prompt('User email (@my.yorku.ca):');
+      if (email === null || !email.trim()) return;
+      
+      const password = prompt('Password (min 8 chars, 1 upper, 1 number, 1 special):');
+      if (password === null || !password.trim()) return;
+      
+      const roleInput = prompt('Role (student or admin):');
+      if (roleInput === null || !roleInput.trim()) return;
+      const role = roleInput.trim().toLowerCase();
+      
+      if (role !== 'student' && role !== 'admin') {
+        alert('Role must be "student" or "admin"');
+        return;
+      }
+
+      const success = await addUser(email.trim(), password, role);
+      if (success) {
+        renderUsers();
+      }
+    });
+
+    // Re-render users when users tab is clicked
+    document.querySelector('[data-tab="users"]')?.addEventListener('click', () => {
+      renderUsers();
     });
   });
   

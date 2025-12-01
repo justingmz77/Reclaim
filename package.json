@@ -11,7 +11,10 @@
     "postinstall": "npm run seed"
   },
   "nodemonConfig": {
-    "ignore": ["node_modules", "reclaim.db"]
+    "ignore": [
+      "node_modules",
+      "reclaim.db"
+    ]
   },
   "keywords": [
     "mental-health",

@@ -54,6 +54,62 @@ const Users = {
     } catch (error) {
       return { success: false, error: error.message };
     }
+  },
+
+  update: function(id, updates) {
+    try {
+      // Build dynamic UPDATE query based on provided fields
+      const fields = [];
+      const values = [];
+      
+      if (updates.role !== undefined) {
+        fields.push('role = ?');
+        values.push(updates.role);
+      }
+      
+      if (updates.email !== undefined) {
+        fields.push('email = ?');
+        values.push(updates.email);
+      }
+      
+      if (fields.length === 0) {
+        return { success: false, error: 'No fields to update' };
+      }
+      
+      values.push(id); // Add id for WHERE clause
+      
+      const result = db.prepare(`
+        UPDATE users SET ${fields.join(', ')} WHERE id = ?
+      `).run(...values);
+      
+      if (result.changes === 0) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      console.log('User updated:', id, updates);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  delete: function(id) {
+    try {
+      const result = db.prepare(`
+        DELETE FROM users WHERE id = ?
+      `).run(id);
+      
+      if (result.changes === 0) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      console.log('User deleted:', id);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return { success: false, error: error.message };
+    }
   }
 };
 
