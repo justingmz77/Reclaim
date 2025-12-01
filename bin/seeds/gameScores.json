@@ -1,0 +1,42 @@
+[
+  {
+    "id": "gs001",
+    "userId": "1764518580787sy7vsuwkn",
+    "gameId": "memory-game",
+    "score": 850,
+    "metadata": "{\"level\": \"medium\", \"time\": 45}",
+    "completedAt": "2025-11-25T10:30:00.000Z"
+  },
+  {
+    "id": "gs002",
+    "userId": "1764518580787sy7vsuwkn",
+    "gameId": "memory-game",
+    "score": 1200,
+    "metadata": "{\"level\": \"hard\", \"time\": 60}",
+    "completedAt": "2025-11-26T14:15:00.000Z"
+  },
+  {
+    "id": "gs003",
+    "userId": "1764518580787sy7vsuwkn",
+    "gameId": "focus-game",
+    "score": 950,
+    "metadata": "{\"level\": \"easy\", \"time\": 30}",
+    "completedAt": "2025-11-27T09:45:00.000Z"
+  },
+  {
+    "id": "gs004",
+    "userId": "1764518580787sy7vsuwkn",
+    "gameId": "focus-game",
+    "score": 1500,
+    "metadata": "{\"level\": \"medium\", \"time\": 50}",
+    "completedAt": "2025-11-28T16:20:00.000Z"
+  },
+  {
+    "id": "gs005",
+    "userId": "1764518580787sy7vsuwkn",
+    "gameId": "memory-game",
+    "score": 1800,
+    "metadata": "{\"level\": \"hard\", \"time\": 55}",
+    "completedAt": "2025-11-29T11:00:00.000Z"
+  }
+]

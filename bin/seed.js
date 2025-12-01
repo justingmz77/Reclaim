@@ -12,6 +12,21 @@ const SEED_RESOLVERS = {
     users: async (seedData) => {
         const hashedPassword = await bcrypt.hash(seedData.password, 10);
         return database.Users.add(seedData.id, seedData.email, hashedPassword, seedData.role, seedData.createdAt);
+    },
+    gameScores: async (seedData) => {
+        return database.GameScores.add(seedData.id, seedData.userId, seedData.gameId, seedData.score, seedData.metadata, seedData.completedAt);
+    },
+    moodEntries: async (seedData) => {
+        return database.MoodEntries.add(seedData.id, seedData.userId, seedData.date, seedData.mood, seedData.emoji, seedData.note, seedData.timestamp);
+    },
+    journalEntries: async (seedData) => {
+        return database.JournalEntries.add(seedData.id, seedData.userId, seedData.title, seedData.content, seedData.createdAt);
+    },
+    habits: async (seedData) => {
+        return database.Habits.add(seedData.id, seedData.userId, seedData.name, seedData.description, seedData.reminderFrequency, seedData.status, seedData.createdAt, seedData.streak, seedData.lastCompletedDate);
+    },
+    habitCompletions: async (seedData) => {
+        return database.Habits.addCompletion(seedData.id, seedData.habitId, seedData.userId, seedData.completedDate);
     }
 };
 
@@ -69,12 +84,27 @@ async function seed() {
         return;
     }
 
-    const seeds = fs.readdirSync(SEEDS_DIR).filter(file => file.endsWith('.json'));
+    let seeds = fs.readdirSync(SEEDS_DIR).filter(file => file.endsWith('.json'));
 
     if (seeds.length === 0) {
         console.log('No seed files found. Skipping seeding.');
         return;
     }
+
+    // Sort seeds to ensure proper foreign key dependencies
+    // Users must be first, then habits before habitCompletions
+    const seedOrder = ['users', 'gameScores', 'moodEntries', 'journalEntries', 'habits', 'habitCompletions'];
+    seeds.sort((a, b) => {
+        const aName = a.split('.')[0];
+        const bName = b.split('.')[0];
+        const aIndex = seedOrder.indexOf(aName);
+        const bIndex = seedOrder.indexOf(bName);
+
+        if (aIndex === -1 && bIndex === -1) return 0;
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+    });
 
     let seedCount = 0;
     let skipCount = 0;
@@ -94,7 +124,7 @@ async function seed() {
 
         for (const data of dataArray) {
             try {
-            const result = resolver(data);
+            const result = await resolver(data);
             console.log(`✓ Seeded ${seedName}: ${result.success ? 'Success' : 'Failed'}`);
             seedCount++;
             } catch (error) {
