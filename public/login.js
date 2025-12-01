@@ -27,8 +27,17 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
-            // Success - redirect to dashboard
-            window.location.href = '/dashboard.html';
+            // Success - check for redirect parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
+            
+            if (redirectUrl) {
+                // Redirect to the originally intended page
+                window.location.href = redirectUrl;
+            } else {
+                // Default redirect to dashboard
+                window.location.href = '/dashboard';
+            }
         } else {
             // Show error message
             errorMessage.textContent = data.error || 'Invalid email or password. Please try again.';
@@ -49,8 +58,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     try {
         const response = await fetch('/api/user');
         if (response.ok) {
-            // User is already logged in, redirect to dashboard
-            window.location.href = '/dashboard.html';
+            // User is already logged in - check for redirect or go to dashboard
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
+            
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = '/dashboard';
+            }
         }
     } catch (error) {
         // Not logged in, stay on login page

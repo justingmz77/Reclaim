@@ -36,7 +36,7 @@ function requireAuth(req, res, next) {
 }
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -50,8 +50,10 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    // Password validation: 8+ chars, 1 upper, 1 number, 1 special
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long and include an uppercase letter, a number, and a special character (!@#$%^&*)' });
     }
 
     // Create user
@@ -117,12 +119,12 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/user', (req, res) => {
   if (req.session.userId) {
-    const user = auth.getUserById(req.session.userId);
-    if (user) {
+    const result = auth.getUserById(req.session.userId);
+    if (result.success && result.user) {
       res.json({
-        id: user.id,
-        email: user.email,
-        role: user.role
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role
       });
     } else {
       res.status(404).json({ error: 'User not found' });
