@@ -176,22 +176,43 @@ async function loadDashboard() {
         if (adminCard) adminCard.style.display = 'flex';
     }
     
-    // Load mood entries count (user-specific)
-    const moodStorageKey = window.userDataManager.getUserStorageKey('reclaim_mood_entries', user.id);
-    const moodEntries = JSON.parse(localStorage.getItem(moodStorageKey) || '[]');
-    document.getElementById('moodEntriesCount').textContent = moodEntries.length;
+    // Load mood entries count from API
+    try {
+        const moodResponse = await fetch('/api/mood-entries?limit=30');
+        if (moodResponse.ok) {
+            const moodData = await moodResponse.json();
+            document.getElementById('moodEntriesCount').textContent = (moodData.entries || []).length;
+        } else {
+            document.getElementById('moodEntriesCount').textContent = '0';
+        }
+    } catch (error) {
+        console.error('Error loading mood entries count:', error);
+        document.getElementById('moodEntriesCount').textContent = '0';
+    }
     
-    // Load habits count (user-specific)
-    const habitsStorageKey = window.userDataManager.getUserStorageKey('reclaim_habits', user.id);
-    const habits = JSON.parse(localStorage.getItem(habitsStorageKey) || '[]');
-    document.getElementById('habitsCount').textContent = habits.length;
-    
-    // Load completed habits for today (user-specific)
-    const today = new Date().toISOString().split('T')[0];
-    const completedStorageKey = window.userDataManager.getUserStorageKey('reclaim_completed_habits', user.id);
-    const completedHabits = JSON.parse(localStorage.getItem(completedStorageKey) || '{}');
-    const todayCompleted = completedHabits[today] || [];
-    document.getElementById('completedHabitsCount').textContent = todayCompleted.length;
+    // Load habits count from API
+    try {
+        const habitsResponse = await fetch('/api/habits');
+        if (habitsResponse.ok) {
+            const habitsData = await habitsResponse.json();
+            const habits = habitsData.habits || [];
+            document.getElementById('habitsCount').textContent = habits.length;
+
+            // Count habits completed today
+            const today = new Date().toISOString().split('T')[0];
+            const completedToday = habits.filter(h =>
+                h.completionHistory && h.completionHistory.includes(today)
+            ).length;
+            document.getElementById('completedHabitsCount').textContent = completedToday;
+        } else {
+            document.getElementById('habitsCount').textContent = '0';
+            document.getElementById('completedHabitsCount').textContent = '0';
+        }
+    } catch (error) {
+        console.error('Error loading habits count:', error);
+        document.getElementById('habitsCount').textContent = '0';
+        document.getElementById('completedHabitsCount').textContent = '0';
+    }
 
     // Habit Reminders card setup
     setupHabitReminderCard(user);

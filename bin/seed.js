@@ -1,4 +1,4 @@
-let database = require('../utils/database');
+let database = require('../utils/db');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
@@ -9,8 +9,8 @@ const SEEDS_DIR = path.join(__dirname, 'seeds');
 const shouldClearDB = process.argv.includes('--fresh');
 
 const SEED_RESOLVERS = {
-    users: (seedData) => {
-        const hashedPassword = bcrypt.hashSync(seedData.password, 10);
+    users: async (seedData) => {
+        const hashedPassword = await bcrypt.hash(seedData.password, 10);
         return database.Users.add(seedData.id, seedData.email, hashedPassword, seedData.role, seedData.createdAt);
     }
 };
@@ -44,9 +44,16 @@ async function dropAllTables() {
     database.db.exec('VACUUM');
     console.log('Tables dropped.');
 
+    // Clear all db-related modules from cache
+    const dbModulePath = path.resolve(__dirname, '../utils/db');
+    Object.keys(require.cache).forEach((key) => {
+        if (key.startsWith(dbModulePath)) {
+            delete require.cache[key];
+        }
+    });
+
     // Reload database module to rebuild tables
-    delete require.cache[require.resolve('../utils/database')];
-    database = require('../utils/database');
+    database = require('../utils/db');
     console.log('Tables rebuilt.');
 }
 

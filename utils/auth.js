@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { Users } = require('./database');
+const { Users } = require('./db');
 
 // validate york email
 function isValidYorkUEmail(email) {
