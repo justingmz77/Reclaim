@@ -8,7 +8,16 @@
     "dev": "nodemon server.js",
     "seed": "node bin/seed.js",
     "seed:fresh": "node bin/seed.js --fresh",
-    "postinstall": "npm run seed"
+    "db:clean": "node bin/db-clean.js all",
+    "db:clean:dev": "node bin/db-clean.js dev",
+    "db:clean:test": "node bin/db-clean.js test",
+    "postinstall": "npm run seed",
+    "prepare": "playwright install",
+    "test": "node bin/test.js all",
+    "test:jest": "node bin/test.js jest",
+    "test:e2e": "node bin/test.js e2e",
+    "test:e2e:headed": "node bin/test.js e2e:headed",
+    "test:coverage": "jest -c tests/jest.config.js --coverage"
   },
   "nodemonConfig": {
     "ignore": [
@@ -31,6 +40,10 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "@playwright/test": "^1.58.1",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2"
   }
 }

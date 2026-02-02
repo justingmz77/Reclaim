@@ -1,7 +1,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'reclaim.db');
+// Use test database when NODE_ENV=test
+const DB_PATH = process.env.NODE_ENV === 'test' && process.env.TEST_DB_PATH
+  ? process.env.TEST_DB_PATH
+  : path.join(__dirname, 'reclaim.db');
 const db = new Database(DB_PATH);
 
 // Enable foreign keys

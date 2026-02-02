@@ -883,7 +883,12 @@ app.post('/api/habits/:id/complete', requireAuth, (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Reclaim server running on http://localhost:${PORT}`);
-});
+// Start server only if running directly (not imported for testing)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Reclaim server running on http://localhost:${PORT}`);
+  });
+}
+
+// Export for testing
+module.exports = app;
