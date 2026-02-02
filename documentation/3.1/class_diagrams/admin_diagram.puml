@@ -1,0 +1,87 @@
+@startuml Reclaim Class Diagram
+' Force horizontal layout
+left to right direction
+
+' ----------------------------
+' Packages for organization
+' ----------------------------
+class User {
+    +id: string
+    +email: string
+    +password: string
+    +role: string
+    +createdAt: string
+    --
+    +add(id: string, email: string, password: string, role: string, createdAt: string): Result
+    +getByEmail(email: string): Result
+    +findById(id: string): Result
+    +all(): Result
+    +update(id: string, updates: Object): Result
+    +delete(id: string): Result
+}
+
+package "Admin and Services" as AdminPkg {
+
+    class Admin {
+        ' Inherits from User; role must be "admin"
+        --
+        +manageContent(type: string, item: Object): ManageResult
+        +promoteUser(userId: string): Result
+    }
+
+    class ManageResult {
+        +ok : boolean
+    }
+
+    class ContentManager <<utility>> {
+        +contentFile: string
+        --
+        +loadContent(): ContentResult
+        +saveContent(data: Object)
+        +addContent(type: string, item: Object): AddContentResult
+        +getContent(): ContentResult
+    }
+
+    class AddContentResult {
+        +ok : boolean
+    }
+
+    class ContentResult {
+        +prompts: Object [0..*]
+        +games: Object [0..*]
+        +exercises: Object [0..*]
+    }
+
+    class AdminService <<utility>> {
+        --
+        +makeAdmin(userId: string): Result
+        +requireAdmin(req: Object, res: Object, next: function)
+        +getAdmins(): GetAdminsResult
+    }
+
+    class GetAdminsResult {
+        +success: boolean
+        +admins: Object [0..*]
+        +error: string
+    }
+}
+
+class Result {
+    +success: boolean
+    +error: string
+    +data: Object
+}
+
+' ----------------------------
+' Relationships
+' ----------------------------
+User <|-- Admin : generalization
+Admin --> ContentManager : manages
+Admin --> AdminService : uses
+ContentManager --> User : requires admin
+
+' Notes
+note right of User : Role determines permissions.\n'admin' enables Admin subclass.
+note right of Admin : Admin-specific actions;\nrequires role='admin'.
+
+@enduml
