@@ -3,6 +3,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     updateNavigation();
+    initHamburgerMenu();
 });
 
 async function updateNavigation() {
@@ -218,10 +219,35 @@ function renderCategorizedNav(nav, navCategories) {
     setupMobileMenuToggle();
 }
 
+// Initialize hamburger menu button (independent of navigation rendering)
+function initHamburgerMenu() {
+    const hamburgerBtn = document.querySelector('.hamburger-btn');
+    const navList = document.querySelector('.nav-links');
+    
+    if (!hamburgerBtn || !navList) return;
+
+    // Toggle menu visibility when hamburger is clicked
+    hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navList.classList.toggle('mobile-menu-open');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        // Only close if we're on mobile and clicking outside hamburger button
+        if (window.innerWidth <= 785) {
+            if (!hamburgerBtn.contains(e.target) && !navList.contains(e.target)) {
+                navList.classList.remove('mobile-menu-open');
+            }
+        }
+    });
+}
+
 function setupMobileMenuToggle() {
     // Only for mobile devices
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 785) {
         const navCategories = document.querySelectorAll('.nav-category');
+        const navList = document.querySelector('.nav-links');
 
         navCategories.forEach(category => {
             const label = category.querySelector('.nav-category-label');
@@ -240,7 +266,7 @@ function setupMobileMenuToggle() {
             });
         });
 
-        // Close menus when clicking outside
+        // Close dropdown menus when clicking outside
         document.addEventListener('click', () => {
             navCategories.forEach(category => {
                 category.classList.remove('active');
