@@ -89,7 +89,8 @@ function showLoggedInNav(nav, user) {
         {
             label: 'Account',
             items: [
-                { text: 'Dashboard', href: '/dashboard' }
+                { text: 'Dashboard', href: '/dashboard' },
+                { text: '♿ Accessibility', href: '#', id: 'a11yNavLink' }
             ]
         }
     ];
