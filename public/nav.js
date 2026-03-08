@@ -62,8 +62,8 @@ function renderLoggedInNav(nav, user) {
         {
             label: 'Account',
             items: [
-                { text: 'Dashboard', href: '/dashboard' },,
-                { text: '♿ Accessibility', href: '#', id: 'a11yNavLink' }
+                { text: 'Dashboard', href: '/dashboard' },
+                { text: '♿ Accessibility', href: '#', id: 'a11yNavLink' },
                 ...(window.userDataManager?.isAdmin(user) ? [{ text: 'Manage Content', href: 'admin.html' }] : []),
                 { text: 'Logout', href: '#', id: 'logoutLink' }
             ]
