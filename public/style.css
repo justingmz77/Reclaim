@@ -1724,3 +1724,42 @@ footer {
   margin: 0;
   padding-left: 1.2rem;
 }
+
+.wellness-tool-streak {
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.btn-success.completed {
+    background: #6c757d;
+}
+
+.btn-success.completed:hover {
+    background: #6c757d;
+}
+
+.confetti-piece {
+    position: fixed;
+    top: -10px;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2000;
+    opacity: 0.95;
+    animation: confetti-fall 1.6s ease-in forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
+}
