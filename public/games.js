@@ -77,7 +77,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Always render games, but disable unavailable ones
   await loadUserStats();
   renderGames();
+  await renderManagedGames();
 });
+
+async function renderManagedGames() {
+  let managedGames = [];
+
+  try {
+    const res = await fetch('/api/content');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.games) && data.games.length > 0) {
+        managedGames = data.games;
+      }
+    }
+  } catch (_) {
+    return;
+  }
+
+  if (!managedGames.length) return;
+
+  const gamesGrid = document.getElementById('gamesGrid');
+  managedGames.forEach(game => {
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.innerHTML = `
+      <div class="game-icon">🎮</div>
+      <h3>${game.title || 'Game'}</h3>
+      <p class="game-description">${game.description || ''}</p>
+      <span class="coming-soon">Coming Soon</span>
+    `;
+    gamesGrid.appendChild(card);
+  });
+}
 
 async function loadUserStats() {
   if (!currentUser) return;

@@ -1504,12 +1504,9 @@ footer {
     margin-bottom: 3rem;
 }
 
-/* Habit Reminders card: span full row under the top 3 and be a bit shorter */
+/* Habit Reminders card */
 .habit-reminders-card {
-    grid-column: 1 / -1;         
-    max-width: 900px;            
-    justify-self: center;         
-    padding: 1.75rem 2.5rem;      
+    padding: 1.75rem 2.5rem;
 }
 
 .habit-reminders-card p {
@@ -1641,10 +1638,6 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .habit-reminders-card {
-        grid-column: auto;
-        max-width: 100%;
-    }
 
     .stats-grid {
         grid-template-columns: 1fr;
