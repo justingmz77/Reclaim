@@ -9,13 +9,13 @@
 </head>
 <body>
   <header>
-      <nav>
-          <button class="hamburger-btn">
-              <i class="fa-solid fa-bars"></i>
-          </button>
-          <h1 class="logo">Reclaim</h1>
-          <ul class="nav-links"></ul>
-      </nav>
+    <nav>
+      <button class="hamburger-btn" aria-label="Open navigation menu">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+      <h1 class="logo">Reclaim</h1>
+      <ul class="nav-links"></ul>
+    </nav>
   </header>
   <main>
     <!-- Hero Section -->
@@ -27,9 +27,9 @@
     </section>
 
     <!-- Journaling Section -->
-    <section id="mood" class="section mood-section">
+    <section id="mood" class="section mood-section" aria-labelledby="journal-heading">
       <div class="mood-header">
-        <h2>Write your way to a clearer mind 💭</h2>
+        <h2 id="journal-heading">Write your way to a clearer mind 💭</h2>
         <p class="mood-subtitle">
           Reflect on your thoughts and emotions through guided prompts or free writing. 
           Your personal journal helps you track patterns, gain self-awareness, and support your overall wellness journey.
@@ -40,13 +40,13 @@
       <div class="mood-selector">
         <!-- JS variable: guidedJournalBtn -->
         <button id="guidedBtn" class="mood-btn">
-          <span class="mood-emoji">📝</span>
+          <span class="mood-emoji" aria-hidden="true">📝</span>
           <span class="mood-label">Guided Journaling with a Prompt</span>
         </button>
 
         <!-- JS variable: freeJournalBtn -->
         <button id="freeBtn" class="mood-btn">
-          <span class="mood-emoji">📖</span>
+          <span class="mood-emoji" aria-hidden="true">📖</span>
           <span class="mood-label">Free Journaling</span>
         </button>
       </div>
