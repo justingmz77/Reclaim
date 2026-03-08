@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const { getUserById } = require('./auth');
+const { getUserById } = require('./utils/auth');
 
 const router = express.Router();
 const CONTENT_FILE = path.join(__dirname, 'content.json');
@@ -24,8 +24,9 @@ function saveContent(data) {
 // Simple session guard; assumes req.session.userId is set by your existing auth flow
 function requireAdmin(req, res, next) {
   const uid = req.session?.userId;
-  const user = uid ? getUserById(uid) : null;
-  if (!user || user.role !== 'admin') {
+  if (!uid) return res.status(401).json({ error: 'Not authenticated' });
+  const result = getUserById(uid);
+  if (!result.success || !result.user || result.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();

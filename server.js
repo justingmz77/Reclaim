@@ -883,6 +883,9 @@ app.post('/api/habits/:id/complete', requireAuth, (req, res) => {
   }
 });
 
+// Content management routes (admin CRUD for prompts, games, exercises)
+app.use(require('./contentroutes'));
+
 // Start server only if running directly (not imported for testing)
 if (require.main === module) {
   app.listen(PORT, () => {
