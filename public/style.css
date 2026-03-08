@@ -1504,6 +1504,20 @@ footer {
     margin-bottom: 3rem;
 }
 
+/* Bottom row: spans full grid width and centers its cards */
+.dashboard-bottom-row {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.dashboard-bottom-row > .dashboard-card {
+    flex: 1;
+    max-width: calc((100% - 4rem) / 3);
+    min-width: 280px;
+}
+
 /* Habit Reminders card */
 .habit-reminders-card {
     padding: 1.75rem 2.5rem;
