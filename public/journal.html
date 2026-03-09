@@ -18,7 +18,6 @@
     </nav>
   </header>
   <main>
-    <!-- Hero Section -->
     <section id="home" class="hero">
       <div class="hero-content">
         <h2>Journal</h2>
@@ -36,46 +35,36 @@
         </p>
       </div>
 
-      <!-- Buttons to choose journal type -->
       <div class="mood-selector">
-        <!-- JS variable: guidedJournalBtn -->
         <button id="guidedBtn" class="mood-btn">
           <span class="mood-emoji" aria-hidden="true">📝</span>
           <span class="mood-label">Guided Journaling with a Prompt</span>
         </button>
-
-        <!-- JS variable: freeJournalBtn -->
         <button id="freeBtn" class="mood-btn">
           <span class="mood-emoji" aria-hidden="true">📖</span>
           <span class="mood-label">Free Journaling</span>
         </button>
       </div>
 
-      <!-- Container for guided prompt buttons (JS variable: promptsContainer) -->
       <div id="guidedPrompts" style="display: none; margin-top: 1rem;"></div>
 
       <div class="mood-tracker-card">
         <div class="mood-notes-section">
-          <!-- Optional Journal Title -->
+          <!-- Unique IDs to prevent conflict with mood tracker -->
           <textarea id="journalTitle" class="mood-notes-input" placeholder="Journal Title" rows="1"></textarea>
-
-          <!-- Main Journal Textarea (JS uses: moodNotes) -->
-          <textarea id="moodNotes" class="mood-notes-input" rows="8"></textarea>
+          <textarea id="journalNotes" class="mood-notes-input" rows="8" placeholder="Write your thoughts here..."></textarea>
         </div>
 
-        <!-- Save Button (JS uses: saveMoodBtn) -->
-        <button id="saveMoodBtn" class="btn btn-primary btn-save-mood" disabled>
+        <button id="saveJournalBtn" class="btn btn-primary btn-save-mood" disabled>
           Save Journal Entry
         </button>
 
-        <div id="mood-message" class="mood-message"></div>
+        <div id="journalMessage" class="mood-message"></div>
       </div>
 
       <div class="mood-history-section">
         <h3>Recent Journal Entries</h3>
-        <div id="moodHistory" class="mood-history-grid">
-          <!-- Mood history will be inserted here -->
-        </div>
+        <div id="journalHistory" class="mood-history-grid"></div>
       </div>
     </section>
 
@@ -111,11 +100,9 @@
     <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
   </footer>
 
-  <!-- Global JS -->
   <script src="userDataManager.js"></script>
   <script src="nav.js"></script>
   <script src="app.js"></script>
-  <!-- Journal page JS -->
   <script src="journal.js"></script>
 </body>
 </html>
