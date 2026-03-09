@@ -26,45 +26,55 @@
     </section>
 
     <!-- Journaling Section -->
-    <section id="mood" class="section mood-section" aria-labelledby="journal-heading">
-      <div class="mood-header">
+    <section id="journal" class="section tracker-section" aria-labelledby="journal-heading">
+      <div class="tracker-header">
         <h2 id="journal-heading">Write your way to a clearer mind 💭</h2>
-        <p class="mood-subtitle">
+        <p class="tracker-subtitle">
           Reflect on your thoughts and emotions through guided prompts or free writing. 
           Your personal journal helps you track patterns, gain self-awareness, and support your overall wellness journey.
         </p>
       </div>
 
-      <div class="mood-selector">
-        <button id="guidedBtn" class="mood-btn">
-          <span class="mood-emoji" aria-hidden="true">📝</span>
-          <span class="mood-label">Guided Journaling with a Prompt</span>
+      <!-- Buttons to choose journal type -->
+      <div class="tracker-selector">
+        <!-- JS variable: guidedJournalBtn -->
+        <button id="guidedBtn" class="tracker-btn">
+          <span class="tracker-emoji" aria-hidden="true">📝</span>
+          <span class="tracker-label">Guided Journaling with a Prompt</span>
         </button>
-        <button id="freeBtn" class="mood-btn">
-          <span class="mood-emoji" aria-hidden="true">📖</span>
-          <span class="mood-label">Free Journaling</span>
+
+        <!-- JS variable: freeJournalBtn -->
+        <button id="freeBtn" class="tracker-btn">
+          <span class="tracker-emoji" aria-hidden="true">📖</span>
+          <span class="tracker-label">Free Journaling</span>
         </button>
       </div>
 
-      <div id="guidedPrompts" style="display: none; margin-top: 1rem;"></div>
+      <!-- Container for guided prompt buttons (JS variable: promptsContainer) -->
+      <div id="guidedPrompts" class="guided-prompts"></div>
 
-      <div class="mood-tracker-card">
-        <div class="mood-notes-section">
-          <!-- Unique IDs to prevent conflict with mood tracker -->
-          <textarea id="journalTitle" class="mood-notes-input" placeholder="Journal Title" rows="1"></textarea>
-          <textarea id="journalNotes" class="mood-notes-input" rows="8" placeholder="Write your thoughts here..."></textarea>
+      <div class="tracker-card">
+        <div class="tracker-notes-section">
+          <!-- Optional Journal Title -->
+          <textarea id="journalTitle" class="tracker-notes-input" placeholder="Journal Title" rows="1"></textarea>
+
+          <!-- Main Journal Textarea -->
+          <textarea id="journalContent" class="tracker-notes-input" rows="8" placeholder="Write your thoughts here..."></textarea>
         </div>
 
-        <button id="saveJournalBtn" class="btn btn-primary btn-save-mood" disabled>
+        <!-- Save Button -->
+        <button id="saveJournalBtn" class="btn btn-primary btn-save-entry" disabled>
           Save Journal Entry
         </button>
 
-        <div id="journalMessage" class="mood-message"></div>
+        <div id="journal-message" class="tracker-message"></div>
       </div>
 
-      <div class="mood-history-section">
+      <div class="tracker-history-section">
         <h3>Recent Journal Entries</h3>
-        <div id="journalHistory" class="mood-history-grid"></div>
+        <div id="journalHistory" class="tracker-history-grid">
+          <!-- Journal history will be inserted here -->
+        </div>
       </div>
     </section>
 

@@ -280,23 +280,23 @@ nav a:hover {
     color: #667eea;
 }
 
-/* Mood Tracker */
-.mood-section {
+/* Shared Tracker UI (Mood + Journal) */
+.tracker-section {
     background: #f9fafb;
 }
 
-.mood-header {
+.tracker-header {
     text-align: center;
     margin-bottom: 2rem;
 }
 
-.mood-subtitle {
+.tracker-subtitle {
     font-size: 1.1rem;
     color: #666;
     margin-top: 0.5rem;
 }
 
-.mood-tracker-card {
+.tracker-card {
     background: white;
     border-radius: 20px;
     padding: 3rem 2rem;
@@ -305,14 +305,14 @@ nav a:hover {
     margin: 0 auto 3rem;
 }
 
-.mood-selector {
+.tracker-selector {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 1rem;
     margin-bottom: 2rem;
 }
 
-.mood-btn {
+.tracker-btn {
     background: white;
     border: 3px solid #e1e4e8;
     border-radius: 16px;
@@ -328,7 +328,7 @@ nav a:hover {
     overflow: hidden;
 }
 
-.mood-btn::before {
+.tracker-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -341,39 +341,39 @@ nav a:hover {
     z-index: 0;
 }
 
-.mood-btn:hover {
+.tracker-btn:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
     border-color: #667eea;
 }
 
-.mood-btn.active {
+.tracker-btn.active {
     border-color: #667eea;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
-.mood-btn.active::before {
+.tracker-btn.active::before {
     opacity: 1;
 }
 
-.mood-emoji {
+.tracker-emoji {
     font-size: 3rem;
     position: relative;
     z-index: 1;
     transition: transform 0.3s ease;
 }
 
-.mood-btn:hover .mood-emoji {
+.tracker-btn:hover .tracker-emoji {
     transform: scale(1.2);
 }
 
-.mood-btn.active .mood-emoji {
+.tracker-btn.active .tracker-emoji {
     transform: scale(1.15);
     filter: brightness(1.2);
 }
 
-.mood-label {
+.tracker-label {
     font-size: 1rem;
     font-weight: 600;
     position: relative;
@@ -381,15 +381,15 @@ nav a:hover {
     color: #333;
 }
 
-.mood-btn.active .mood-label {
+.tracker-btn.active .tracker-label {
     color: white;
 }
 
-.mood-notes-section {
+.tracker-notes-section {
     margin-bottom: 2rem;
 }
 
-.mood-notes-label {
+.tracker-notes-label {
     display: block;
     font-weight: 600;
     color: #333;
@@ -397,7 +397,7 @@ nav a:hover {
     font-size: 1rem;
 }
 
-.mood-notes-input {
+.tracker-notes-input {
     width: 100%;
     padding: 1rem;
     border: 2px solid #e1e4e8;
@@ -408,13 +408,13 @@ nav a:hover {
     transition: border-color 0.3s;
 }
 
-.mood-notes-input:focus {
+.tracker-notes-input:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.btn-save-mood {
+.btn-save-entry {
     width: 100%;
     padding: 1rem 2rem;
     font-size: 1.1rem;
@@ -423,12 +423,12 @@ nav a:hover {
     cursor: pointer;
 }
 
-.btn-save-mood:disabled {
+.btn-save-entry:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.mood-message {
+.tracker-message {
     text-align: center;
     margin-top: 1.5rem;
     font-size: 1.1rem;
@@ -440,30 +440,30 @@ nav a:hover {
     display: none;
 }
 
-.mood-message.show {
+.tracker-message.show {
     display: block;
 }
 
-/* Mood History */
-.mood-history-section {
+/* Shared history cards */
+.tracker-history-section {
     max-width: 800px;
     margin: 0 auto;
 }
 
-.mood-history-section h3 {
+.tracker-history-section h3 {
     color: #667eea;
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
     text-align: center;
 }
 
-.mood-history-grid {
+.tracker-history-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-.mood-history-item {
+.tracker-history-item {
     background: white;
     border: 2px solid #e1e4e8;
     border-radius: 12px;
@@ -471,20 +471,20 @@ nav a:hover {
     transition: all 0.3s;
 }
 
-.mood-history-item:hover {
+.tracker-history-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-color: #667eea;
 }
 
-.mood-history-date {
+.tracker-history-date {
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 0.5rem;
     font-weight: 500;
 }
 
-.mood-history-mood {
+.tracker-history-value {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -494,18 +494,18 @@ nav a:hover {
     margin-bottom: 0.5rem;
 }
 
-.mood-history-mood-emoji {
+.tracker-history-emoji {
     font-size: 1.8rem;
 }
 
-.mood-history-note {
+.tracker-history-note {
     font-size: 0.9rem;
     color: #666;
     line-height: 1.5;
     font-style: italic;
 }
 
-.no-mood-history {
+.no-entry-history {
     text-align: center;
     padding: 3rem 2rem;
     color: #666;
@@ -513,6 +513,24 @@ nav a:hover {
     background: white;
     border-radius: 12px;
     border: 2px dashed #e1e4e8;
+}
+
+.guided-prompts {
+    display: none;
+    margin-top: 1rem;
+}
+
+.guided-prompts.show {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tracker-prompt-btn {
+    flex: 1;
+    min-width: 200px;
 }
 
 /* Habits */
@@ -1193,27 +1211,27 @@ footer {
         font-size: 2rem;
     }
 
-    .mood-tracker-card {
+    .tracker-card {
         padding: 2rem 1.5rem;
     }
 
-    .mood-selector {
+    .tracker-selector {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .mood-btn {
+    .tracker-btn {
         padding: 1.2rem 0.8rem;
     }
 
-    .mood-emoji {
+    .tracker-emoji {
         font-size: 2.5rem;
     }
 
-    .mood-label {
+    .tracker-label {
         font-size: 0.9rem;
     }
 
-    .mood-history-grid {
+    .tracker-history-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1298,15 +1316,15 @@ footer {
         font-size: 0.95rem;
     }
 
-    .mood-tracker-card {
+    .tracker-card {
         padding: 1.5rem 1rem;
     }
 
-    .mood-selector {
+    .tracker-selector {
         grid-template-columns: 1fr;
     }
 
-    .mood-emoji {
+    .tracker-emoji {
         font-size: 2rem;
     }
 

@@ -3,16 +3,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = await window.userDataManager?.requireAuth();
   if (!user) return;
 
-  const guidedBtn = document.getElementById("guidedBtn");
-  const freeBtn = document.getElementById("freeBtn");
+  const guidedJournalBtn = document.getElementById("guidedBtn");
+  const freeJournalBtn = document.getElementById("freeBtn");
   const promptsContainer = document.getElementById("guidedPrompts");
-  const journalTextarea = document.getElementById("journalNotes");
+  const journalTextarea = document.getElementById("journalContent");
   const journalTitleInput = document.getElementById("journalTitle");
   const saveBtn = document.getElementById("saveJournalBtn");
-  const journalMessage = document.getElementById("journalMessage");
+  const journalMessage = document.getElementById("journal-message");
   const historyContainer = document.getElementById("journalHistory");
 
-  const promptTitles = [
+  if (!guidedJournalBtn || !freeJournalBtn || !promptsContainer) return;
+
+  const promptButtonTitles = [
     "Prompt 1: Self-Reflection 🪞",
     "Prompt 2: Gratitude 🌤️",
     "Prompt 3: Growth or Challenge 💪",
@@ -26,11 +28,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     "What’s one thing you want to focus on or improve tomorrow?"
   ];
 
+  let activePromptButtonTitles = promptButtonTitles;
+  let activePromptTexts = promptTexts;
+
+  try {
+    const res = await fetch('/api/content', { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data?.prompts) && data.prompts.length > 0) {
+        const managedTitles = [];
+        const managedTexts = [];
+        data.prompts.forEach((p) => {
+          if (p && typeof p.title === 'string' && typeof p.text === 'string') {
+            managedTitles.push(p.title);
+            managedTexts.push(p.text);
+          }
+        });
+        if (managedTitles.length > 0 && managedTexts.length > 0) {
+          activePromptButtonTitles = managedTitles;
+          activePromptTexts = managedTexts;
+        }
+      }
+    }
+  } catch (_) {
+    // Keep defaults if managed prompts are unavailable.
+  }
+
   // Load journal history
   async function updateJournalHistory() {
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {
-      historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your journal entries.</div>';
+      historyContainer.innerHTML = '<div class="no-entry-history">Please log in to view your journal entries.</div>';
       return;
     }
 
@@ -42,57 +70,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       historyContainer.innerHTML = "";
 
       if (entries.length === 0) {
-        historyContainer.innerHTML = '<div class="no-mood-history">No journal entries yet. Start writing!</div>';
+        historyContainer.innerHTML = '<div class="no-entry-history">No journal entries yet. Start writing!</div>';
         return;
       }
 
       entries.forEach(entry => {
         const card = document.createElement("div");
-        card.classList.add("journal-card");
+        card.classList.add("tracker-history-item");
+        // Format the ISO date to a more readable format
         const displayDate = new Date(entry.createdAt).toLocaleString();
         card.innerHTML = `
-          <h4>${entry.title}</h4>
-          <p>${entry.content}</p>
-          <small>${displayDate}</small>
+          <div class="tracker-history-date">${displayDate}</div>
+          <div class="tracker-history-value">${entry.title}</div>
+          <div class="tracker-history-note">${entry.content}</div>
         `;
         historyContainer.appendChild(card);
       });
     } catch (error) {
       console.error('Error loading journal entries:', error);
-      historyContainer.innerHTML = '<div class="no-mood-history">Error loading journal entries. Please try again.</div>';
+      historyContainer.innerHTML = '<div class="no-entry-history">Error loading journal entries. Please try again.</div>';
     }
   }
 
   await updateJournalHistory();
 
-  // Guided prompts
-  guidedBtn.addEventListener("click", () => {
-    promptsContainer.innerHTML = "";
-    promptsContainer.style.display = "flex";
-    promptsContainer.style.justifyContent = "space-between";
-    promptsContainer.style.flexWrap = "wrap";
-    promptsContainer.style.gap = "10px";
-    promptsContainer.style.marginBottom = "20px";
+  guidedJournalBtn.addEventListener("click", () => {
+    promptsContainer.innerHTML = ""; 
+    promptsContainer.classList.add("show");
 
-    promptTexts.forEach((text, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = promptTitles[i];
-      btn.classList.add("mood-btn");
-      btn.style.flex = "1";
-      btn.style.minWidth = "200px";
-
-      btn.addEventListener("click", () => {
+    activePromptTexts.forEach((text, index) => {
+      const promptBtn = document.createElement("button");
+      promptBtn.textContent = activePromptButtonTitles[index] ?? `Prompt ${index + 1}`;
+      promptBtn.classList.add("tracker-btn", "tracker-prompt-btn");
+      promptBtn.addEventListener("click", () => {
         journalTextarea.value = text;
         saveBtn.disabled = false;
       });
 
-      promptsContainer.appendChild(btn);
+      promptsContainer.appendChild(promptBtn);
     });
   });
 
-  // Free journaling
-  freeBtn.addEventListener("click", () => {
-    promptsContainer.style.display = "none";
+  freeJournalBtn.addEventListener("click", () => {
+    promptsContainer.classList.remove("show");
     journalTextarea.value = "";
     journalTitleInput.value = "";
     saveBtn.disabled = true;
@@ -129,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Update history
       await updateJournalHistory();
 
-      // Success message
+      // Show success message
       journalMessage.textContent = "Journal entry saved!";
       setTimeout(() => (journalMessage.textContent = ""), 3000);
     } catch (error) {
