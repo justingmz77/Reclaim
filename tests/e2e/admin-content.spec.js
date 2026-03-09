@@ -14,6 +14,27 @@ async function loginAs(page, email, password) {
   await page.waitForLoadState('networkidle');
 }
 
+// Helper: accept dialogs in sequence (prompts get values from array, others accepted)
+function handleDialogs(page, values) {
+  let i = 0;
+  page.on('dialog', async (dialog) => {
+    if (dialog.type() === 'prompt') {
+      await dialog.accept(values[i++] ?? '');
+    } else {
+      await dialog.accept();
+    }
+  });
+}
+
+// Helper: click a button that triggers dialog(s) + API save, wait for list to update
+async function clickAndWaitForSave(page, buttonSelector, apiPath) {
+  const saved = page.waitForResponse(
+    (resp) => resp.url().includes(apiPath) && ['POST', 'PUT', 'DELETE'].includes(resp.request().method())
+  );
+  await page.click(buttonSelector);
+  await saved;
+}
+
 test.describe('Admin Content Management', () => {
   test.describe('Dashboard access', () => {
     test('admin sees Manage Content card on dashboard', async ({ page }) => {
@@ -78,9 +99,6 @@ test.describe('Admin Content Management', () => {
   });
 
   test.describe('Journaling prompts CRUD', () => {
-    const uniqueTitle = `E2E Test Prompt ${Date.now()}`;
-    const uniqueText = 'E2E test prompt text';
-
     test.beforeEach(async ({ page }) => {
       await loginAs(page, ADMIN_EMAIL, ADMIN_PASSWORD);
       await page.goto('/admin.html');
@@ -88,39 +106,20 @@ test.describe('Admin Content Management', () => {
     });
 
     test('add a new prompt', async ({ page }) => {
-      // Queue dialog responses: first prompt() = title, second = text
-      const dialogs = [uniqueTitle, uniqueText];
-      let dialogIndex = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') {
-          await dialog.accept(dialogs[dialogIndex++]);
-        } else {
-          await dialog.accept();
-        }
-      });
+      const uniqueTitle = `E2E Test Prompt ${Date.now()}`;
+      handleDialogs(page, [uniqueTitle, 'E2E test prompt text']);
 
-      await page.click('#addPromptBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addPromptBtn', '/api/content/prompts');
 
-      // New prompt should appear in the list
-      await expect(page.locator('#promptsList')).toContainText(uniqueTitle);
+      await expect(page.locator('#promptsList')).toContainText(uniqueTitle, { timeout: 8000 });
     });
 
     test('edit an existing prompt', async ({ page }) => {
-      // First add a prompt to edit
       const titleToEdit = `Edit Me ${Date.now()}`;
-      const dialogs = [titleToEdit, 'Original text'];
-      let dialogIndex = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') {
-          await dialog.accept(dialogs[dialogIndex++]);
-        } else {
-          await dialog.accept();
-        }
-      });
+      handleDialogs(page, [titleToEdit, 'Original text']);
 
-      await page.click('#addPromptBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addPromptBtn', '/api/content/prompts');
+      await expect(page.locator('#promptsList')).toContainText(titleToEdit, { timeout: 8000 });
 
       // Find the newly added prompt row and update its title input
       const titleInput = page.locator(`#promptsList input[value="${titleToEdit}"]`);
@@ -129,37 +128,31 @@ test.describe('Admin Content Management', () => {
 
       // Click Save on that row
       const row = page.locator('#promptsList .admin-row').filter({ hasText: 'Updated Title' });
+      const putDone = page.waitForResponse(
+        (resp) => resp.url().includes('/api/content/prompts') && resp.request().method() === 'PUT'
+      );
       await row.locator('button[data-action="save"]').click();
-      await page.waitForLoadState('networkidle');
+      await putDone;
 
-      await expect(page.locator('#promptsList')).toContainText('Updated Title');
+      await expect(page.locator('#promptsList')).toContainText('Updated Title', { timeout: 8000 });
     });
 
     test('delete a prompt', async ({ page }) => {
-      // Add a prompt to delete
       const titleToDelete = `Delete Me ${Date.now()}`;
-      const addDialogs = [titleToDelete, 'Text to delete'];
-      let addIndex = 0;
+      handleDialogs(page, [titleToDelete, 'Text to delete']);
 
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') {
-          await dialog.accept(addDialogs[addIndex++]);
-        } else {
-          // confirm() dialog for delete
-          await dialog.accept();
-        }
-      });
+      await clickAndWaitForSave(page, '#addPromptBtn', '/api/content/prompts');
+      await expect(page.locator('#promptsList')).toContainText(titleToDelete, { timeout: 8000 });
 
-      await page.click('#addPromptBtn');
-      await page.waitForLoadState('networkidle');
-      await expect(page.locator('#promptsList')).toContainText(titleToDelete);
-
-      // Delete it
+      // Delete it — dialog handler accepts the confirm()
+      const deleteDone = page.waitForResponse(
+        (resp) => resp.url().includes('/api/content/prompts') && resp.request().method() === 'DELETE'
+      );
       const row = page.locator('#promptsList .admin-row').filter({ hasText: titleToDelete });
       await row.locator('button[data-action="delete"]').click();
-      await page.waitForLoadState('networkidle');
+      await deleteDone;
 
-      await expect(page.locator('#promptsList')).not.toContainText(titleToDelete);
+      await expect(page.locator('#promptsList')).not.toContainText(titleToDelete, { timeout: 8000 });
     });
   });
 
@@ -173,38 +166,28 @@ test.describe('Admin Content Management', () => {
 
     test('add a new exercise', async ({ page }) => {
       const title = `E2E Exercise ${Date.now()}`;
-      const instructions = 'Breathe in, breathe out.';
-      const dialogs = [title, instructions];
-      let i = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') await dialog.accept(dialogs[i++]);
-        else await dialog.accept();
-      });
+      handleDialogs(page, [title, 'Breathe in, breathe out.']);
 
-      await page.click('#addExerciseBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addExerciseBtn', '/api/content/exercises');
 
-      await expect(page.locator('#exercisesList')).toContainText(title);
+      await expect(page.locator('#exercisesList')).toContainText(title, { timeout: 8000 });
     });
 
     test('delete an exercise', async ({ page }) => {
       const title = `Del Exercise ${Date.now()}`;
-      const dialogs = [title, 'Some instructions'];
-      let i = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') await dialog.accept(dialogs[i++]);
-        else await dialog.accept();
-      });
+      handleDialogs(page, [title, 'Some instructions']);
 
-      await page.click('#addExerciseBtn');
-      await page.waitForLoadState('networkidle');
-      await expect(page.locator('#exercisesList')).toContainText(title);
+      await clickAndWaitForSave(page, '#addExerciseBtn', '/api/content/exercises');
+      await expect(page.locator('#exercisesList')).toContainText(title, { timeout: 8000 });
 
+      const deleteDone = page.waitForResponse(
+        (resp) => resp.url().includes('/api/content/exercises') && resp.request().method() === 'DELETE'
+      );
       const row = page.locator('#exercisesList .admin-row').filter({ hasText: title });
       await row.locator('button[data-action="delete"]').click();
-      await page.waitForLoadState('networkidle');
+      await deleteDone;
 
-      await expect(page.locator('#exercisesList')).not.toContainText(title);
+      await expect(page.locator('#exercisesList')).not.toContainText(title, { timeout: 8000 });
     });
   });
 
@@ -218,18 +201,11 @@ test.describe('Admin Content Management', () => {
 
     test('add a new game entry', async ({ page }) => {
       const title = `E2E Game ${Date.now()}`;
-      const description = 'A test game entry.';
-      const dialogs = [title, description];
-      let i = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') await dialog.accept(dialogs[i++]);
-        else await dialog.accept();
-      });
+      handleDialogs(page, [title, 'A test game entry.']);
 
-      await page.click('#addGameBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addGameBtn', '/api/content/games');
 
-      await expect(page.locator('#gamesList')).toContainText(title);
+      await expect(page.locator('#gamesList')).toContainText(title, { timeout: 8000 });
     });
   });
 
@@ -240,17 +216,11 @@ test.describe('Admin Content Management', () => {
       await page.waitForLoadState('networkidle');
 
       const title = `Global Prompt ${Date.now()}`;
-      const dialogs = [title, 'Global text'];
-      let i = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') await dialog.accept(dialogs[i++]);
-        else await dialog.accept();
-      });
+      handleDialogs(page, [title, 'Global text']);
 
-      await page.click('#addPromptBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addPromptBtn', '/api/content/prompts');
+      await expect(page.locator('#promptsList')).toContainText(title, { timeout: 8000 });
 
-      // Fetch /api/content and verify the new prompt is present
       const response = await page.request.get('/api/content');
       expect(response.ok()).toBeTruthy();
       const content = await response.json();
@@ -264,19 +234,17 @@ test.describe('Admin Content Management', () => {
       await page.waitForLoadState('networkidle');
 
       const title = `Remove Me ${Date.now()}`;
-      const dialogs = [title, 'Will be removed'];
-      let i = 0;
-      page.on('dialog', async (dialog) => {
-        if (dialog.type() === 'prompt') await dialog.accept(dialogs[i++]);
-        else await dialog.accept();
-      });
+      handleDialogs(page, [title, 'Will be removed']);
 
-      await page.click('#addPromptBtn');
-      await page.waitForLoadState('networkidle');
+      await clickAndWaitForSave(page, '#addPromptBtn', '/api/content/prompts');
+      await expect(page.locator('#promptsList')).toContainText(title, { timeout: 8000 });
 
+      const deleteDone = page.waitForResponse(
+        (resp) => resp.url().includes('/api/content/prompts') && resp.request().method() === 'DELETE'
+      );
       const row = page.locator('#promptsList .admin-row').filter({ hasText: title });
       await row.locator('button[data-action="delete"]').click();
-      await page.waitForLoadState('networkidle');
+      await deleteDone;
 
       const response = await page.request.get('/api/content');
       const content = await response.json();
@@ -309,6 +277,77 @@ test.describe('Admin Content Management', () => {
         data: { id: 'student-test', title: 'Blocked', text: 'Should fail' }
       });
       expect(response.status()).toBe(403);
+    });
+  });
+
+  test.describe('User Management', () => {
+    test.beforeEach(async ({ page }) => {
+      await loginAs(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+      await page.goto('/admin.html');
+      await page.waitForLoadState('networkidle');
+      await page.click('[data-tab="users"]');
+    });
+
+    test('shows users list', async ({ page }) => {
+      await expect(page.locator('#usersList')).toBeVisible();
+    });
+
+    test('shows existing users in the list', async ({ page }) => {
+      await expect(page.locator('#usersList .admin-row').first()).toBeVisible();
+    });
+
+    test('can add a new user', async ({ page }) => {
+      const newEmail = `testuser${Date.now()}@my.yorku.ca`;
+      handleDialogs(page, [newEmail, 'TestPass1!', 'student']);
+
+      const addDone = page.waitForResponse(
+        (resp) => resp.url().includes('/api/admin/users') && resp.request().method() === 'POST'
+      );
+      await page.click('#addUserBtn');
+      await addDone;
+
+      await expect(page.locator('#usersList')).toContainText(newEmail, { timeout: 8000 });
+    });
+
+    test('can change a user role', async ({ page }) => {
+      // Retrieve the current user list to find a non-self user to update
+      const listResponse = await page.request.get('/api/admin/users');
+      expect(listResponse.ok()).toBeTruthy();
+      const { users } = await listResponse.json();
+
+      // Pick the first user that is not the admin performing the request
+      const target = users.find(u => u.email !== ADMIN_EMAIL);
+      expect(target).toBeTruthy();
+
+      const originalRole = target.role;
+      const newRole = originalRole === 'student' ? 'admin' : 'student';
+
+      const updateResponse = await page.request.put(`/api/admin/users/${target.id}`, {
+        data: { role: newRole }
+      });
+      expect(updateResponse.ok()).toBeTruthy();
+
+      // Verify the change persisted by re-fetching the list
+      const verifyResponse = await page.request.get('/api/admin/users');
+      const { users: updatedUsers } = await verifyResponse.json();
+      const updated = updatedUsers.find(u => u.id === target.id);
+      expect(updated.role).toBe(newRole);
+
+      // Restore the original role to avoid polluting other tests
+      await page.request.put(`/api/admin/users/${target.id}`, {
+        data: { role: originalRole }
+      });
+    });
+
+    test('student cannot access users tab UI', async ({ page }) => {
+      // Logout the current admin session, then log in as student
+      await page.request.post('/api/logout');
+      await loginAs(page, STUDENT_EMAIL, STUDENT_PASSWORD);
+      await page.goto('/admin.html');
+      await page.waitForLoadState('networkidle');
+
+      await expect(page.locator('#adminOnlyGate')).toBeVisible();
+      await expect(page.locator('#adminApp')).toBeHidden();
     });
   });
 });
