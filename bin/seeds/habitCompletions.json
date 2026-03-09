@@ -1,0 +1,104 @@
+[
+  {
+    "id": "hc001",
+    "habitId": "h001",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-20"
+  },
+  {
+    "id": "hc002",
+    "habitId": "h001",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-21"
+  },
+  {
+    "id": "hc003",
+    "habitId": "h001",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-22"
+  },
+  {
+    "id": "hc004",
+    "habitId": "h001",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-23"
+  },
+  {
+    "id": "hc005",
+    "habitId": "h002",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-22"
+  },
+  {
+    "id": "hc006",
+    "habitId": "h002",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-23"
+  },
+  {
+    "id": "hc007",
+    "habitId": "h002",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-24"
+  },
+  {
+    "id": "hc008",
+    "habitId": "h005",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-25"
+  },
+  {
+    "id": "hc009",
+    "habitId": "h005",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-26"
+  },
+  {
+    "id": "hc010",
+    "habitId": "h005",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-27"
+  },
+  {
+    "id": "hc011",
+    "habitId": "h003",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-19"
+  },
+  {
+    "id": "hc012",
+    "habitId": "h003",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-26"
+  },
+  {
+    "id": "hc013",
+    "habitId": "h004",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-17"
+  },
+  {
+    "id": "hc014",
+    "habitId": "h004",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-24"
+  },
+  {
+    "id": "hc015",
+    "habitId": "h007",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-24"
+  },
+  {
+    "id": "hc016",
+    "habitId": "h007",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-25"
+  },
+  {
+    "id": "hc017",
+    "habitId": "h007",
+    "userId": "1764518580787sy7vsuwkn",
+    "completedDate": "2025-11-26"
+  }
+]

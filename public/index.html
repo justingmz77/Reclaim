@@ -5,20 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reclaim - Mental Health & Wellness</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <header>
-        <nav>
-            <h1>Reclaim</h1>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#mood">Mood Tracker</a></li>
-                <li><a href="habits.html">Habits</a></li>
-                <li><a href="#resources">Resources</a></li>
-            </ul>
-        </nav>
+    <nav>
+        <button class="hamburger-btn" aria-label="Open navigation menu">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+        <h1 class="logo">Reclaim</h1>
+        <ul class="nav-links"></ul>
+    </nav>
     </header>
-
     <main>
         <!-- Hero Section -->
         <section id="home" class="hero">
@@ -29,49 +27,49 @@
         </section>
 
         <!-- Mood Tracker Section -->
-        <section id="mood" class="section mood-section">
-            <div class="mood-header">
+        <section id="mood" class="section tracker-section">
+            <div class="tracker-header">
                 <h2>How are you feeling today?</h2>
-                <p class="mood-subtitle">Track your daily mood to understand your wellness patterns</p>
+                <p class="tracker-subtitle">Track your daily mood to understand your wellness patterns</p>
             </div>
 
-            <div class="mood-tracker-card">
-                <div class="mood-selector">
-                    <button class="mood-btn" data-mood="great" data-emoji="😊">
-                        <span class="mood-emoji">😊</span>
-                        <span class="mood-label">Great</span>
+            <div class="tracker-card">
+                <div class="tracker-selector">
+                    <button class="tracker-btn" data-mood="great" data-emoji="😊">
+                        <span class="tracker-emoji" aria-hidden="true">😊</span>
+                        <span class="tracker-label">Great</span>
                     </button>
-                    <button class="mood-btn" data-mood="good" data-emoji="🙂">
-                        <span class="mood-emoji">🙂</span>
-                        <span class="mood-label">Good</span>
+                    <button class="tracker-btn" data-mood="good" data-emoji="🙂">
+                        <span class="tracker-emoji" aria-hidden="true">🙂</span>
+                        <span class="tracker-label">Good</span>
                     </button>
-                    <button class="mood-btn" data-mood="okay" data-emoji="😐">
-                        <span class="mood-emoji">😐</span>
-                        <span class="mood-label">Okay</span>
+                    <button class="tracker-btn" data-mood="okay" data-emoji="😐">
+                        <span class="tracker-emoji" aria-hidden="true">😐</span>
+                        <span class="tracker-label">Okay</span>
                     </button>
-                    <button class="mood-btn" data-mood="bad" data-emoji="😟">
-                        <span class="mood-emoji">😟</span>
-                        <span class="mood-label">Not Good</span>
+                    <button class="tracker-btn" data-mood="bad" data-emoji="😟">
+                        <span class="tracker-emoji" aria-hidden="true">😟</span>
+                        <span class="tracker-label">Not Good</span>
                     </button>
-                    <button class="mood-btn" data-mood="terrible" data-emoji="😢">
-                        <span class="mood-emoji">😢</span>
-                        <span class="mood-label">Terrible</span>
+                    <button class="tracker-btn" data-mood="terrible" data-emoji="😢">
+                        <span class="tracker-emoji" aria-hidden="true">😢</span>
+                        <span class="tracker-label">Terrible</span>
                     </button>
                 </div>
 
-                <div class="mood-notes-section">
-                    <label for="moodNotes" class="mood-notes-label">Add a note (optional)</label>
-                    <textarea id="moodNotes" class="mood-notes-input" placeholder="What's on your mind today?" rows="3"></textarea>
+                <div class="tracker-notes-section">
+                    <label for="moodNotes" class="tracker-notes-label">Add a note (optional)</label>
+                    <textarea id="moodNotes" class="tracker-notes-input" placeholder="What's on your mind today?" rows="3"></textarea>
                 </div>
 
-                <button id="saveMoodBtn" class="btn btn-primary btn-save-mood" disabled>Save Mood Entry</button>
+                <button id="saveMoodBtn" class="btn btn-primary btn-save-entry" disabled>Save Mood Entry</button>
 
-                <div id="mood-message" class="mood-message"></div>
+                <div id="mood-message" class="tracker-message"></div>
             </div>
 
-            <div class="mood-history-section">
+            <div class="tracker-history-section">
                 <h3>Recent Mood Entries</h3>
-                <div id="moodHistory" class="mood-history-grid">
+                <div id="moodHistory" class="tracker-history-grid">
                     <!-- Mood history will be inserted here -->
                 </div>
             </div>
@@ -84,22 +82,22 @@
                 <div class="resource-card">
                     <h3>YFS Health Services</h3>
                     <p>York Federation of Students offers confidential health and wellness support.</p>
-                    <a href="#" class="btn">Learn More</a>
+                    <a href="https://www.yfs.ca/healthandwellness" class="btn">Learn More</a>
                 </div>
                 <div class="resource-card">
                     <h3>Crisis Support</h3>
-                    <p>24/7 crisis support line available for immediate help.</p>
-                    <a href="#" class="btn">Get Help</a>
+                    <p>Good2Talk, a 24/7 crisis support line available for immediate help.</p>
+                    <a href="https://good2talk.ca/" class="btn">Get Help</a>
                 </div>
                 <div class="resource-card">
                     <h3>Counselling Services</h3>
                     <p>Professional counselling services available to all students.</p>
-                    <a href="#" class="btn">Book Session</a>
+                    <a href="https://students.yorku.ca/counselling" class="btn">Book a Session</a>
                 </div>
                 <div class="resource-card">
                     <h3>Wellness Workshops</h3>
                     <p>Join workshops on stress management, time management, and more.</p>
-                    <a href="#" class="btn">View Schedule</a>
+                    <a href="https://students.yorku.ca/counselling/events" class="btn">View Schedule</a>
                 </div>
             </div>
         </section>
@@ -109,6 +107,9 @@
         <p>&copy; 2025 Reclaim - Helping students reclaim their wellness</p>
     </footer>
 
+    <script src="userDataManager.js"></script>
+    <script src="nav.js"></script>
     <script src="app.js"></script>
+    <script src="accessibility.js"></script>
 </body>
 </html>

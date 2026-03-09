@@ -1,14 +1,44 @@
-// Mood Tracker with localStorage
-const MOOD_STORAGE_KEY = 'reclaim_mood_entries';
-
-// Get all mood entries from localStorage
-function getMoodEntries() {
-    return JSON.parse(localStorage.getItem(MOOD_STORAGE_KEY) || '[]');
+// Mood Tracker with API
+// Get all mood entries from API
+async function getMoodEntries() {
+    try {
+        const response = await fetch('/api/mood-entries?limit=30');
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.log('User not authenticated');
+                return [];
+            }
+            throw new Error('Failed to fetch mood entries');
+        }
+        const data = await response.json();
+        return data.entries || [];
+    } catch (error) {
+        console.error('Error fetching mood entries:', error);
+        return [];
+    }
 }
 
-// Save mood entries to localStorage
-function saveMoodEntries(entries) {
-    localStorage.setItem(MOOD_STORAGE_KEY, JSON.stringify(entries));
+// Save mood entry to API
+async function saveMoodEntry(date, mood, emoji, note) {
+    try {
+        const response = await fetch('/api/mood-entries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ date, mood, emoji, note })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save mood entry');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error saving mood entry:', error);
+        throw error;
+    }
 }
 
 // Get today's date string
@@ -24,98 +54,99 @@ function formatDate(dateString) {
 }
 
 // Mood Tracker functionality
-const moodButtons = document.querySelectorAll('.mood-btn');
+const moodButtons = document.querySelectorAll('.tracker-btn[data-mood]');
 const moodMessage = document.getElementById('mood-message');
 const moodNotesInput = document.getElementById('moodNotes');
 const saveMoodBtn = document.getElementById('saveMoodBtn');
 let selectedMood = null;
 
+const hasMoodTrackerElements = moodMessage && moodNotesInput && saveMoodBtn && moodButtons.length > 0;
+
 // Enable/disable save button based on mood selection
-moodButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Remove active class from all buttons
-        moodButtons.forEach(btn => btn.classList.remove('active'));
+if (hasMoodTrackerElements) {
+    moodButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            moodButtons.forEach(btn => btn.classList.remove('active'));
 
-        // Add active class to clicked button
-        button.classList.add('active');
+            // Add active class to clicked button
+            button.classList.add('active');
 
-        // Store selected mood
-        selectedMood = button.dataset.mood;
+            // Store selected mood
+            selectedMood = button.dataset.mood;
 
-        // Enable save button
-        saveMoodBtn.disabled = false;
+            // Enable save button
+            saveMoodBtn.disabled = false;
 
-        // Clear any previous message
-        moodMessage.classList.remove('show');
+            // Clear any previous message
+            moodMessage.classList.remove('show');
+        });
     });
-});
+}
 
 // Save mood entry
-saveMoodBtn.addEventListener('click', () => {
-    if (!selectedMood) return;
+if (hasMoodTrackerElements) {
+    saveMoodBtn.addEventListener('click', async () => {
+        if (!selectedMood) return;
 
-    const today = getTodayDateString();
-    const emoji = document.querySelector(`.mood-btn[data-mood="${selectedMood}"]`).dataset.emoji;
-    const note = moodNotesInput.value.trim();
+        // Check authentication
+        const user = await window.userDataManager?.requireAuth();
+        if (!user) return;
 
-    // Get existing entries
-    const entries = getMoodEntries();
+        const today = getTodayDateString();
+        const emoji = document.querySelector(`.tracker-btn[data-mood="${selectedMood}"]`).dataset.emoji;
+        const note = moodNotesInput.value.trim();
 
-    // Check if there's already an entry for today
-    const existingIndex = entries.findIndex(entry => entry.date === today);
+        try {
+            // Save to database via API
+            await saveMoodEntry(today, selectedMood, emoji, note);
 
-    const newEntry = {
-        date: today,
-        mood: selectedMood,
-        emoji: emoji,
-        note: note,
-        timestamp: new Date().toISOString()
-    };
+            // Show success message
+            const moodLabels = {
+                great: 'Great',
+                good: 'Good',
+                okay: 'Okay',
+                bad: 'Not Good',
+                terrible: 'Terrible'
+            };
 
-    if (existingIndex >= 0) {
-        // Update existing entry
-        entries[existingIndex] = newEntry;
-    } else {
-        // Add new entry
-        entries.unshift(newEntry);
-    }
+            moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
+            moodMessage.classList.add('show');
 
-    // Keep only last 30 entries
-    if (entries.length > 30) {
-        entries.splice(30);
-    }
+            // Reset form
+            setTimeout(() => {
+                moodMessage.classList.remove('show');
+            }, 3000);
 
-    // Save to localStorage
-    saveMoodEntries(entries);
-
-    // Show success message
-    const moodLabels = {
-        great: 'Great',
-        good: 'Good',
-        okay: 'Okay',
-        bad: 'Not Good',
-        terrible: 'Terrible'
-    };
-
-    moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
-    moodMessage.classList.add('show');
-
-    // Reset form
-    setTimeout(() => {
-        moodMessage.classList.remove('show');
-    }, 3000);
-
-    // Render updated history
-    renderMoodHistory();
-});
+            // Render updated history
+            await renderMoodHistory();
+        } catch (error) {
+            // Show error message
+            moodMessage.textContent = '❌ Failed to save mood. Please try again.';
+            moodMessage.classList.add('show');
+            setTimeout(() => {
+                moodMessage.classList.remove('show');
+            }, 3000);
+        }
+    });
+}
 
 // Render mood history
-function renderMoodHistory() {
+async function renderMoodHistory() {
     const historyContainer = document.getElementById('moodHistory');
-    const entries = getMoodEntries();
+    if (!historyContainer) return;
+    
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        historyContainer.innerHTML = '<div class="no-entry-history">Please log in to view your mood entries.</div>';
+        return;
+    }
+    
+    const entries = await getMoodEntries();
 
     if (entries.length === 0) {
-        historyContainer.innerHTML = '<div class="no-mood-history">No mood entries yet. Start tracking your mood today!</div>';
+        historyContainer.innerHTML = '<div class="no-entry-history">No mood entries yet. Start tracking your mood today!</div>';
         return;
     }
 
@@ -132,22 +163,27 @@ function renderMoodHistory() {
         };
 
         return `
-            <div class="mood-history-item">
-                <div class="mood-history-date">${formatDate(entry.date)}</div>
-                <div class="mood-history-mood">
-                    <span class="mood-history-mood-emoji">${entry.emoji}</span>
+            <div class="tracker-history-item">
+                <div class="tracker-history-date">${formatDate(entry.date)}</div>
+                <div class="tracker-history-value">
+                    <span class="tracker-history-emoji">${entry.emoji}</span>
                     <span>${moodLabels[entry.mood]}</span>
                 </div>
-                ${entry.note ? `<div class="mood-history-note">"${entry.note}"</div>` : ''}
+                ${entry.note ? `<div class="tracker-history-note">"${entry.note}"</div>` : ''}
             </div>
         `;
     }).join('');
 }
 
 // Load today's mood if already set
-function loadTodaysMood() {
+async function loadTodaysMood() {
+    if (!hasMoodTrackerElements) return;
+
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) return; // Don't load if not logged in
+    
     const today = getTodayDateString();
-    const entries = getMoodEntries();
+    const entries = await getMoodEntries();
     const todayEntry = entries.find(entry => entry.date === today);
 
     if (todayEntry) {
@@ -158,16 +194,26 @@ function loadTodaysMood() {
             saveMoodBtn.disabled = false;
         }
 
-        if (todayEntry.note) {
+        if (todayEntry.note && moodNotesInput) {
             moodNotesInput.value = todayEntry.note;
         }
     }
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadTodaysMood();
-    renderMoodHistory();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if user is logged in before loading data
+    const user = await window.userDataManager?.getCurrentUser();
+    if (user) {
+        await loadTodaysMood();
+        await renderMoodHistory();
+    } else {
+        // Show message that user needs to log in
+        const historyContainer = document.getElementById('moodHistory');
+        if (historyContainer) {
+            historyContainer.innerHTML = '<div class="no-entry-history">Please <a href="login.html">log in</a> to track your mood.</div>';
+        }
+    }
 });
 
 // Smooth scrolling for navigation

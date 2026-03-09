@@ -1,0 +1,15 @@
+{
+    "prompts": [
+      { "id": "p1", "title": "Self-Reflection 🪞", "text": "What emotion stood out to you today? Why?" },
+      { "id": "p2", "title": "Gratitude 🌤️", "text": "List one thing you’re grateful for today." },
+      { "id": "p3", "title": "Growth or Challenge 💪", "text": "What challenged you today, and what did you learn?" },
+      { "id": "p4", "title": "Intention for Tomorrow 🌱", "text": "What’s one thing to focus on tomorrow?" }
+    ],
+    "games": [],
+    "exercises": [
+      { "id": "e1", "title": "4-7-8 Breathing (Calm-Down Reset)", "instructions": "When to use: Before an exam, presentation, or when stress spikes.\n1. Inhale through your nose for 4 seconds\n2. Hold for 7 seconds\n3. Exhale slowly through your mouth for 8 seconds\n🧘‍♀️ Slows the nervous system and reduces anxiety quickly" },
+      { "id": "e2", "title": "The 2-Minute \"Name 5\" Grounding Exercise", "instructions": "When to use: When your brain feels overwhelmed.\n1. Identify 5 things you can see\n2. 4 things you can feel\n3. 2 things you can smell\n4. 1 thing you can taste\n🌳 Brings your focus to the present moment and calms racing thoughts" },
+      { "id": "e3", "title": "Pomodoro with Mindful Pauses", "instructions": "When to use: Studying, writing papers, or doing assignments.\n1. Work for 25 minutes\n2. Take a 5-minute mindful break: no phone, just stretching, breathing, looking out a window\n3. After 4 rounds, take a longer 15–30 min break\n💭 Prevents burnout and increases focus by giving your brain structured rest" },
+      { "id": "e4", "title": "Mindful Walking (5–10 Minutes)", "instructions": "When to use: In between classes or when you need a refresh.\n1. Walk slowly\n2. Pay attention to your feet touching the ground\n3. Notice sounds, temperature, and movement around you\n☀️ Combines light physical activity with mental reset, which improves memory and mood" }
+    ]
+  }

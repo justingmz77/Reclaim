@@ -11,13 +11,17 @@ const STORAGE_KEYS = {
 };
 
 // Audit logging for NFR-002 compliance
-function logAction(action, details) {
-    const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOG) || '[]');
+async function logAction(action, details) {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) return; // Don't log if not authenticated
+    
+    const storageKey = window.userDataManager.getUserStorageKey(STORAGE_KEYS.AUDIT_LOG, user.id);
+    const logs = JSON.parse(localStorage.getItem(storageKey) || '[]');
     const logEntry = {
         timestamp: new Date().toISOString(),
         action: action,
         details: details,
-        userId: 'current_user' // Will be replaced with actual user ID when auth is implemented
+        userId: user.id
     };
 
     logs.push(logEntry);
@@ -27,7 +31,7 @@ function logAction(action, details) {
     cutoffDate.setDate(cutoffDate.getDate() - 180);
     const filteredLogs = logs.filter(log => new Date(log.timestamp) > cutoffDate);
 
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOG, JSON.stringify(filteredLogs));
+    localStorage.setItem(storageKey, JSON.stringify(filteredLogs));
 }
 
 // Habit class
@@ -45,25 +49,36 @@ class Habit {
     }
 }
 
-// Get habits from localStorage
-function getHabits() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.HABITS) || '[]');
+// Get habits from API
+async function getHabits() {
+    try {
+        const response = await fetch('/api/habits');
+        if (!response.ok) {
+            if (response.status === 401) return [];
+            throw new Error('Failed to fetch habits');
+        }
+        const data = await response.json();
+        return data.habits || [];
+    } catch (error) {
+        console.error('Error fetching habits:', error);
+        return [];
+    }
 }
 
-// Save habits to localStorage
-function saveHabits(habits) {
-    localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(habits));
-    logAction('HABITS_UPDATED', { count: habits.length });
-}
-
-// Get completed habits from localStorage
-function getCompletedHabits() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.COMPLETED_HABITS) || '[]');
-}
-
-// Save completed habits to localStorage
-function saveCompletedHabits(habits) {
-    localStorage.setItem(STORAGE_KEYS.COMPLETED_HABITS, JSON.stringify(habits));
+// Get completed habits from API
+async function getCompletedHabits() {
+    try {
+        const response = await fetch('/api/habits?includeCompleted=true');
+        if (!response.ok) {
+            if (response.status === 401) return [];
+            throw new Error('Failed to fetch completed habits');
+        }
+        const data = await response.json();
+        return (data.habits || []).filter(h => h.status === 'done');
+    } catch (error) {
+        console.error('Error fetching completed habits:', error);
+        return [];
+    }
 }
 
 // Calculate streak for a habit
@@ -98,38 +113,46 @@ function calculateStreak(habit) {
 }
 
 // Mark habit as completed for today
-function markHabitComplete(habitId) {
-    const habits = getHabits();
-    const habit = habits.find(h => h.id === habitId);
-
-    if (!habit) return;
-
+async function markHabitComplete(habitId) {
     const today = new Date().toISOString().split('T')[0];
 
-    if (!habit.completionHistory) {
-        habit.completionHistory = [];
-    }
+    try {
+        const response = await fetch(`/api/habits/${habitId}/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: today })
+        });
 
-    // Check if already completed today
-    if (!habit.completionHistory.includes(today)) {
-        habit.completionHistory.push(today);
-        habit.lastCompletedDate = today;
-        habit.streak = calculateStreak(habit);
+        if (!response.ok) {
+            const error = await response.json();
+            if (error.error === 'Habit already completed on this date') {
+                return; // Already completed, silently return
+            }
+            throw new Error(error.error || 'Failed to complete habit');
+        }
 
-        saveHabits(habits);
-        logAction('HABIT_COMPLETED', { habitId, habitName: habit.name, streak: habit.streak });
+        const data = await response.json();
+        await logAction('HABIT_COMPLETED', { habitId, streak: data.streak });
 
         // Check for streak rewards (Use Case 8)
-        checkStreakRewards(habit);
+        const habits = await getHabits();
+        const habit = habits.find(h => h.id === habitId);
+        if (habit) {
+            habit.streak = data.streak;
+            checkStreakRewards(habit);
+        }
 
-        renderHabits();
-        renderStreaks();
+        await renderHabits();
+        await renderStreaks();
+    } catch (error) {
+        console.error('Error completing habit:', error);
+        alert('Failed to mark habit as complete. Please try again.');
     }
 }
 
 // Check for streak rewards (Use Case 8: Focus Games/Rewards)
 function checkStreakRewards(habit) {
-    const milestones = [7, 14, 30, 60, 90, 180, 365];
+    const milestones = [1, 7, 14, 30, 60, 90, 180, 365];
 
     if (milestones.includes(habit.streak)) {
         showRewardNotification(habit);
@@ -138,7 +161,12 @@ function checkStreakRewards(habit) {
 
 // Show reward notification
 function showRewardNotification(habit) {
-    const message = `🎉 Congratulations! You've maintained "${habit.name}" for ${habit.streak} days straight!`;
+    let message = '';
+    if (habit.streak === 1){
+        message = `🚀 Great start! You've completed the first day of "${habit.name}", keep it going!`;
+    } else {
+        message = `🎉 Congratulations! You've maintained "${habit.name}" for ${habit.streak} days straight!`;
+    }
 
     // Create notification element
     const notification = document.createElement('div');
@@ -162,55 +190,57 @@ function showRewardNotification(habit) {
 }
 
 // Mark habit as done (status change)
-function markHabitDone(habitId) {
-    const habits = getHabits();
-    const habitIndex = habits.findIndex(h => h.id === habitId);
+async function markHabitDone(habitId) {
+    try {
+        const habits = await getHabits();
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
 
-    if (habitIndex === -1) return;
+        const response = await fetch(`/api/habits/${habitId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: habit.name,
+                description: habit.description,
+                reminderFrequency: habit.reminderFrequency,
+                status: 'done',
+                streak: habit.streak,
+                lastCompletedDate: habit.lastCompletedDate
+            })
+        });
 
-    const habit = habits[habitIndex];
-    habit.status = 'done';
+        if (!response.ok) {
+            throw new Error('Failed to update habit status');
+        }
 
-    // Move to completed habits
-    const completedHabits = getCompletedHabits();
-    completedHabits.push(habit);
-    saveCompletedHabits(completedHabits);
-
-    // Remove from current habits
-    habits.splice(habitIndex, 1);
-    saveHabits(habits);
-
-    logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
-
-    renderHabits();
+        await logAction('HABIT_STATUS_CHANGED', { habitId, habitName: habit.name, newStatus: 'done' });
+        await renderHabits();
+    } catch (error) {
+        console.error('Error marking habit as done:', error);
+        alert('Failed to mark habit as done. Please try again.');
+    }
 }
 
 // Delete habit
-function deleteHabit(habitId, isCompleted = false) {
+async function deleteHabit(habitId, isCompleted = false) {
     if (!confirm('Are you sure you want to delete this habit?')) return;
 
-    if (isCompleted) {
-        const completedHabits = getCompletedHabits();
-        const habit = completedHabits.find(h => h.id === habitId);
-        const filtered = completedHabits.filter(h => h.id !== habitId);
-        saveCompletedHabits(filtered);
+    try {
+        const response = await fetch(`/api/habits/${habitId}`, {
+            method: 'DELETE'
+        });
 
-        if (habit) {
-            logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: true });
+        if (!response.ok) {
+            throw new Error('Failed to delete habit');
         }
-    } else {
-        const habits = getHabits();
-        const habit = habits.find(h => h.id === habitId);
-        const filtered = habits.filter(h => h.id !== habitId);
-        saveHabits(filtered);
 
-        if (habit) {
-            logAction('HABIT_DELETED', { habitId, habitName: habit.name, wasCompleted: false });
-        }
+        await logAction('HABIT_DELETED', { habitId, wasCompleted: isCompleted });
+        await renderHabits();
+        await renderStreaks();
+    } catch (error) {
+        console.error('Error deleting habit:', error);
+        alert('Failed to delete habit. Please try again.');
     }
-
-    renderHabits();
-    renderStreaks();
 }
 
 // Check if habit was completed today
@@ -220,9 +250,22 @@ function isCompletedToday(habit) {
 }
 
 // Render habits
-function renderHabits() {
-    const habits = getHabits();
-    const completedHabits = getCompletedHabits();
+async function renderHabits() {
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        // User not logged in - show message
+        const currentContainer = document.getElementById('currentHabits');
+        const completedContainer = document.getElementById('completedHabits');
+        const noHabitsMsg = document.getElementById('noHabitsMessage');
+        if (currentContainer) currentContainer.innerHTML = '<div class="no-data-message">Please <a href="login.html">log in</a> to view your habits.</div>';
+        if (completedContainer) completedContainer.innerHTML = '';
+        if (noHabitsMsg) noHabitsMsg.style.display = 'none';
+        return;
+    }
+    
+    const habits = await getHabits();
+    const completedHabits = await getCompletedHabits();
 
     const currentContainer = document.getElementById('currentHabits');
     const completedContainer = document.getElementById('completedHabits');
@@ -343,8 +386,17 @@ function generateContributionGraph(habit) {
 }
 
 // Render streaks and rewards
-function renderStreaks() {
-    const habits = getHabits();
+async function renderStreaks() {
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        const streaksContainer = document.getElementById('streaksContainer');
+        if (streaksContainer) {
+            streaksContainer.innerHTML = '<div class="no-streaks-message"><p>Please <a href="login.html">log in</a> to view your streaks.</p></div>';
+        }
+        return;
+    }
+    
+    const habits = await getHabits(); // <-- Await here!
     const streaksContainer = document.getElementById('streaksContainer');
 
     // Filter habits that have any completions (not just streaks > 0)
@@ -382,6 +434,13 @@ function renderStreaks() {
 
             // Generate contribution graph
             const weeks = generateContributionGraph(habit);
+
+            const allHabits = habits; // Use the already awaited habits
+            const longestStreak = Math.max(...habit.completionHistory.map(d => {
+                const h = allHabits.find(h2 => h2.id === habit.id);
+                return h ? calculateStreak(h) : 0;
+            }), currentStreak);
+
             const contributionHTML = `
                 <div class="contribution-graph">
                     <div class="graph-label">Last 12 weeks</div>
@@ -425,10 +484,7 @@ function renderStreaks() {
                             <span class="stat-label">Total Completions</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">${Math.max(...habit.completionHistory.map(d => {
-                                const h = getHabits().find(h2 => h2.id === habit.id);
-                                return h ? calculateStreak(h) : 0;
-                            }), currentStreak)}</span>
+                            <span class="stat-number">${longestStreak}</span>
                             <span class="stat-label">Longest Streak</span>
                         </div>
                     </div>
@@ -440,8 +496,15 @@ function renderStreaks() {
 }
 
 // Form submission handler
-document.getElementById('addHabitForm').addEventListener('submit', function(e) {
+document.getElementById('addHabitForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    // Check authentication
+    const user = await window.userDataManager?.getCurrentUser();
+    if (!user) {
+        window.location.href = '/login.html';
+        return;
+    }
 
     const name = document.getElementById('habitName').value.trim();
     const description = document.getElementById('habitDescription').value.trim();
@@ -452,28 +515,43 @@ document.getElementById('addHabitForm').addEventListener('submit', function(e) {
         return;
     }
 
-    const habit = new Habit(name, description, reminderFrequency);
-    const habits = getHabits();
-    habits.push(habit);
-    saveHabits(habits);
+    try {
+        const response = await fetch('/api/habits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, reminderFrequency })
+        });
 
-    logAction('HABIT_CREATED', { habitId: habit.id, habitName: habit.name });
+        if (!response.ok) {
+            throw new Error('Failed to create habit');
+        }
 
-    // Reset form
-    this.reset();
+        const data = await response.json();
+        await logAction('HABIT_CREATED', { habitId: data.habit.id, habitName: name });
 
-    // Render updated habits
-    renderHabits();
-    renderStreaks();
+        // Reset form
+        this.reset();
 
-    // Show success message
-    alert('Habit created successfully!');
+        // Render updated habits
+        await renderHabits();
+        await renderStreaks();
+
+        // Show success message
+        alert('Habit created successfully!');
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        alert('Failed to create habit. Please try again.');
+    }
 });
 
 // Initial render on page load
-document.addEventListener('DOMContentLoaded', function() {
-    renderHabits();
-    renderStreaks();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check authentication first
+    const user = await window.userDataManager?.requireAuth();
+    if (!user) return; // Will redirect to login if not authenticated
+    
+    await renderHabits();
+    await renderStreaks();
 
-    logAction('PAGE_VIEW', { page: 'habits' });
+    await logAction('PAGE_VIEW', { page: 'habits' });
 });

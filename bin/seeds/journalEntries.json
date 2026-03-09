@@ -1,0 +1,44 @@
+[
+  {
+    "id": "je001",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "First Week of Classes",
+    "content": "Started my new semester today. The courses look challenging but interesting. I'm particularly excited about the software engineering course where we're building a mental health app. Met some great people in my classes and I think this is going to be a good semester.\n\nMy schedule is pretty packed but I think I can manage if I stay organized. Need to remember to take breaks and not burn out like last semester.",
+    "createdAt": "2025-11-15T22:00:00.000Z"
+  },
+  {
+    "id": "je002",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "Project Planning",
+    "content": "We had our first team meeting for the Reclaim project today. Everyone seems motivated and we have some really cool ideas for features. We're thinking about incorporating habit tracking, mood journaling, and some focus games.\n\nI'm going to be working on the backend mostly. It's a bit intimidating but I'm excited to learn more about database design and API development.",
+    "createdAt": "2025-11-18T20:30:00.000Z"
+  },
+  {
+    "id": "je003",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "Midterm Stress",
+    "content": "Midterms are coming up and I'm feeling the pressure. Have three exams next week plus the project demo. Trying to stay calm and take things one step at a time.\n\nI've been using the mood tracking feature we built and it's actually really helpful to see my patterns. Noticed I'm most stressed on Tuesdays and Thursdays when I have back-to-back classes.",
+    "createdAt": "2025-11-21T23:15:00.000Z"
+  },
+  {
+    "id": "je004",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "Good News!",
+    "content": "Got accepted into the HCI research lab I applied to! Professor Chen said my application stood out because of the work I've been doing on the Reclaim project. This is such an amazing opportunity.\n\nAlso aced my algorithms midterm. All the late night study sessions paid off. Feeling really good about where things are going.",
+    "createdAt": "2025-11-23T19:00:00.000Z"
+  },
+  {
+    "id": "je005",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "Reflections on Mental Health",
+    "content": "Working on this mental health app has made me more aware of my own mental health. It's interesting how building tools for others makes you realize what you need yourself.\n\nI've been better about tracking my moods and habits. The data shows I'm happiest when I exercise in the morning and get at least 7 hours of sleep. Seems obvious but it's different seeing the patterns in data.\n\nThinking about adding some mindfulness features to the app. Maybe guided breathing exercises or meditation timers.",
+    "createdAt": "2025-11-26T21:00:00.000Z"
+  },
+  {
+    "id": "je006",
+    "userId": "1764518580787sy7vsuwkn",
+    "title": "End of Semester Approaching",
+    "content": "Can't believe we're almost done the semester. The Reclaim app has come so far from our initial sketches. It's actually something I use daily now.\n\nFinal presentations are next week. A bit nervous but also proud of what we've built. Our team worked really well together and I learned so much.\n\nAlready thinking about what features we could add next semester if we continue the project.",
+    "createdAt": "2025-11-29T20:45:00.000Z"
+  }
+]

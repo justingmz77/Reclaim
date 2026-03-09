@@ -1,1 +1,10 @@
 /node_modules
+reclaim.db
+utils/reclaim.db
+utils/db/reclaim.db
+
+# Test artifacts
+utils/db/test.db
+test-results/
+playwright-report/
+coverage/

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "h001",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Morning Exercise",
+    "description": "30 minutes of exercise to start the day",
+    "reminderFrequency": "daily",
+    "status": "in_progress",
+    "createdAt": "2025-11-15T08:00:00.000Z",
+    "streak": 12,
+    "lastCompletedDate": "2025-11-29"
+  },
+  {
+    "id": "h002",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Read for 20 minutes",
+    "description": "Read something non-academic to unwind",
+    "reminderFrequency": "daily",
+    "status": "in_progress",
+    "createdAt": "2025-11-16T09:00:00.000Z",
+    "streak": 8,
+    "lastCompletedDate": "2025-11-28"
+  },
+  {
+    "id": "h003",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Practice Guitar",
+    "description": "30 minutes of guitar practice",
+    "reminderFrequency": "weekly",
+    "status": "in_progress",
+    "createdAt": "2025-11-17T10:00:00.000Z",
+    "streak": 3,
+    "lastCompletedDate": "2025-11-26"
+  },
+  {
+    "id": "h004",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Meal Prep Sunday",
+    "description": "Prepare healthy meals for the week",
+    "reminderFrequency": "weekly",
+    "status": "in_progress",
+    "createdAt": "2025-11-15T11:00:00.000Z",
+    "streak": 2,
+    "lastCompletedDate": "2025-11-24"
+  },
+  {
+    "id": "h005",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Meditation",
+    "description": "10 minutes of mindfulness meditation",
+    "reminderFrequency": "daily",
+    "status": "in_progress",
+    "createdAt": "2025-11-20T07:30:00.000Z",
+    "streak": 7,
+    "lastCompletedDate": "2025-11-29"
+  },
+  {
+    "id": "h006",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Call Family",
+    "description": "Check in with family back home",
+    "reminderFrequency": "weekly",
+    "status": "in_progress",
+    "createdAt": "2025-11-15T12:00:00.000Z",
+    "streak": 2,
+    "lastCompletedDate": "2025-11-27"
+  },
+  {
+    "id": "h007",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "No social media after 9pm",
+    "description": "Avoid screens before bed for better sleep",
+    "reminderFrequency": "daily",
+    "status": "in_progress",
+    "createdAt": "2025-11-22T21:00:00.000Z",
+    "streak": 5,
+    "lastCompletedDate": "2025-11-28"
+  },
+  {
+    "id": "h008",
+    "userId": "1764518580787sy7vsuwkn",
+    "name": "Journal Entry",
+    "description": "Write down thoughts and reflections",
+    "reminderFrequency": "weekly",
+    "status": "in_progress",
+    "createdAt": "2025-11-15T22:00:00.000Z",
+    "streak": 2,
+    "lastCompletedDate": "2025-11-29"
+  }
+]

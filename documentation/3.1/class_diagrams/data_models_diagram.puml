@@ -1,0 +1,109 @@
+@startuml Reclaim Class Diagram
+' Force horizontal layout
+left to right direction
+
+' ----------------------------
+' Packages for organization
+' ----------------------------
+package "Data Models" as Data {
+
+    class User {
+        +id: string
+        +email: string
+        +password: string
+        +role: string
+        +createdAt: string
+        --
+        +add(id: string, email: string, password: string, role: string, createdAt: string): Result
+        +getByEmail(email: string): Result
+        +findById(id: string): Result
+        +all(): Result
+        +update(id: string, updates: Object): Result
+        +delete(id: string): Result
+    }
+
+    class Habit {
+        +id: string
+        +userId: string
+        +name: string
+        +description: string
+        +reminderFrequency: string
+        +status: string
+        +createdAt: string
+        +streak: integer
+        +lastCompletedDate: string
+        --
+        +add(id: string, userId: string, name: string, description: string, reminderFrequency: string, status: string, createdAt: string, streak: integer, lastCompletedDate: string): Result
+        +getUserHabits(userId: string, includeCompleted: boolean = false): Result
+        +getById(id: string): Result
+        +update(id: string, userId: string, name: string, description: string, reminderFrequency: string, status: string, streak: integer, lastCompletedDate: string): Result
+        +delete(id: string, userId: string): Result
+        +addCompletion(id: string, habitId: string, userId: string, completedDate: string): Result
+        +getCompletions(habitId: string): Result
+        +getCompletionByDate(habitId: string, date: string): Result
+        +deleteCompletion(habitId: string, completedDate: string): Result
+    }
+
+    class JournalEntry {
+        +id: string
+        +userId: string
+        +title: string
+        +content: string
+        +createdAt: string
+        --
+        +add(id: string, userId: string, title: string, content: string, createdAt: string): Result
+        +getUserEntries(userId: string, limit: integer = 100): Result
+        +getById(id: string): Result
+        +update(id: string, userId: string, title: string, content: string): Result
+        +delete(id: string, userId: string): Result
+    }
+
+    class MoodEntry {
+        +id: string
+        +userId: string
+        +date: string
+        +mood: string
+        +emoji: string
+        +note: string
+        +timestamp: string
+        --
+        +add(id: string, userId: string, date: string, mood: string, emoji: string, note: string, timestamp: string): Result
+        +update(userId: string, date: string, mood: string, emoji: string, note: string, timestamp: string): Result
+        +getUserEntries(userId: string, limit: integer = 30): Result
+        +getByUserAndDate(userId: string, date: string): Result
+        +delete(userId: string, date: string): Result
+    }
+
+    class GameScore {
+        +id: string
+        +userId: string
+        +gameId: string
+        +score: integer
+        +metadata: string
+        +completedAt: string
+        --
+        +add(id: string, userId: string, gameId: string, score: integer, metadata: string, completedAt: string): Result
+        +getUserScores(userId: string, gameId: string): Result
+        +getTopScores(gameId: string, limit: number): Result
+        +getUserBestScore(userId: string, gameId: string): Result
+    }
+}
+
+class Result {
+    +success: boolean
+    +error: string
+    +data: Object
+}
+
+' ----------------------------
+' Relationships
+' ----------------------------
+User "1" -- "*" Habit : owns
+User "1" -- "*" JournalEntry : owns
+User "1" -- "*" MoodEntry : owns
+User "1" -- "*" GameScore : owns
+
+' Notes
+note right of User : Role determines permissions.\n'admin' enables Admin subclass.
+
+@enduml
