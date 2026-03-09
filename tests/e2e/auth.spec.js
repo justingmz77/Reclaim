@@ -21,8 +21,8 @@ test.describe('Authentication Flow', () => {
     await page.fill('#password', 'wrongpassword');
     await page.click('button[type="submit"]');
 
-    // Wait for error message to appear
-    await expect(page.locator('.error, #errorMessage, [class*="error"]')).toBeVisible({ timeout: 5000 });
+    // #errorMessage is hidden by default; wait for it to become visible on failure
+    await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 5000 });
   });
 
   test('should redirect to dashboard after successful login', async ({ page }) => {
@@ -40,20 +40,10 @@ test.describe('Authentication Flow', () => {
   test('should navigate to signup page', async ({ page }) => {
     await page.goto('/login.html');
 
-    // Use first() to handle multiple signup links
     const signupLink = page.locator('a[href*="signup"]').first();
-    if (await signupLink.isVisible()) {
-      await signupLink.click();
-      await expect(page).toHaveURL(/.*signup.*/);
-    }
-  });
-
-  test('should display signup page correctly', async ({ page }) => {
-    await page.goto('/signup.html');
-
-    await expect(page.locator('#email')).toBeVisible();
-    await expect(page.locator('#password')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    await expect(signupLink).toBeVisible();
+    await signupLink.click();
+    await expect(page).toHaveURL(/.*signup.*/);
   });
 
   test('should logout successfully', async ({ page }) => {
@@ -64,12 +54,67 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard**', { timeout: 10000 });
 
-    // Find and click logout
-    const logoutLink = page.locator('#logoutLink, a[href*="logout"], button:has-text("Logout"), a:has-text("Logout")');
-    if (await logoutLink.isVisible()) {
-      await logoutLink.click();
-      await page.waitForURL('**/login**', { timeout: 10000 });
-      await expect(page).toHaveURL(/.*login.*/);
-    }
+    // nav.js renders the logout anchor with id="logoutLink" once the user is
+    // confirmed logged-in; wait for it to appear before clicking.
+    const logoutLink = page.locator('#logoutLink');
+    await expect(logoutLink).toBeVisible({ timeout: 5000 });
+    await logoutLink.click();
+
+    await page.waitForURL('**/login**', { timeout: 10000 });
+    await expect(page).toHaveURL(/.*login.*/);
+  });
+});
+
+test.describe('Signup Flow', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.context().clearCookies();
+  });
+
+  test('should display signup page correctly', async ({ page }) => {
+    await page.goto('/signup.html');
+
+    await expect(page.locator('#email')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
+    await expect(page.locator('#confirmPassword')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
+  });
+
+  test('should show error for non-YorkU email', async ({ page }) => {
+    await page.goto('/signup.html');
+
+    await page.fill('#email', 'test@gmail.com');
+    await page.fill('#password', 'ValidPass1!');
+    await page.fill('#confirmPassword', 'ValidPass1!');
+    await page.click('button[type="submit"]');
+
+    // #errorMessage is hidden by default; the signup script makes it visible
+    // when validation fails.
+    await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should show error for weak password', async ({ page }) => {
+    await page.goto('/signup.html');
+
+    await page.fill('#email', 'newstudent@my.yorku.ca');
+    // Weak: no uppercase, no special char, under complexity requirements
+    await page.fill('#password', 'weakpass');
+    await page.fill('#confirmPassword', 'weakpass');
+    await page.click('button[type="submit"]');
+
+    await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should redirect to dashboard after successful signup', async ({ page }) => {
+    await page.goto('/signup.html');
+
+    // Use a unique email to avoid collisions across test runs
+    const uniqueEmail = `testuser_${Date.now()}@my.yorku.ca`;
+    await page.fill('#email', uniqueEmail);
+    await page.fill('#password', 'ValidPass1!');
+    await page.fill('#confirmPassword', 'ValidPass1!');
+    await page.click('button[type="submit"]');
+
+    await page.waitForURL('**/dashboard**', { timeout: 10000 });
+    await expect(page).toHaveURL(/.*dashboard.*/);
   });
 });
