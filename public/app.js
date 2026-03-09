@@ -54,76 +54,82 @@ function formatDate(dateString) {
 }
 
 // Mood Tracker functionality
-const moodButtons = document.querySelectorAll('.mood-btn');
+const moodButtons = document.querySelectorAll('.tracker-btn[data-mood]');
 const moodMessage = document.getElementById('mood-message');
 const moodNotesInput = document.getElementById('moodNotes');
 const saveMoodBtn = document.getElementById('saveMoodBtn');
 let selectedMood = null;
 
+const hasMoodTrackerElements = moodMessage && moodNotesInput && saveMoodBtn && moodButtons.length > 0;
+
 // Enable/disable save button based on mood selection
-moodButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Remove active class from all buttons
-        moodButtons.forEach(btn => btn.classList.remove('active'));
+if (hasMoodTrackerElements) {
+    moodButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            moodButtons.forEach(btn => btn.classList.remove('active'));
 
-        // Add active class to clicked button
-        button.classList.add('active');
+            // Add active class to clicked button
+            button.classList.add('active');
 
-        // Store selected mood
-        selectedMood = button.dataset.mood;
+            // Store selected mood
+            selectedMood = button.dataset.mood;
 
-        // Enable save button
-        saveMoodBtn.disabled = false;
+            // Enable save button
+            saveMoodBtn.disabled = false;
 
-        // Clear any previous message
-        moodMessage.classList.remove('show');
+            // Clear any previous message
+            moodMessage.classList.remove('show');
+        });
     });
-});
+}
 
 // Save mood entry
-saveMoodBtn.addEventListener('click', async () => {
-    if (!selectedMood) return;
+if (hasMoodTrackerElements) {
+    saveMoodBtn.addEventListener('click', async () => {
+        if (!selectedMood) return;
 
-    // Check authentication
-    const user = await window.userDataManager?.requireAuth();
-    if (!user) return;
+        // Check authentication
+        const user = await window.userDataManager?.requireAuth();
+        if (!user) return;
 
-    const today = getTodayDateString();
-    const emoji = document.querySelector(`.mood-btn[data-mood="${selectedMood}"]`).dataset.emoji;
-    const note = moodNotesInput.value.trim();
+        const today = getTodayDateString();
+        const emoji = document.querySelector(`.tracker-btn[data-mood="${selectedMood}"]`).dataset.emoji;
+        const note = moodNotesInput.value.trim();
 
-    try {
-        // Save to database via API
-        await saveMoodEntry(today, selectedMood, emoji, note);
+        try {
+            // Save to database via API
+            await saveMoodEntry(today, selectedMood, emoji, note);
 
-        // Show success message
-        const moodLabels = {
-            great: 'Great',
-            good: 'Good',
-            okay: 'Okay',
-            bad: 'Not Good',
-            terrible: 'Terrible'
-        };
+            // Show success message
+            const moodLabels = {
+                great: 'Great',
+                good: 'Good',
+                okay: 'Okay',
+                bad: 'Not Good',
+                terrible: 'Terrible'
+            };
 
-        moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
-        moodMessage.classList.add('show');
+            moodMessage.textContent = `✅ Mood saved: ${emoji} ${moodLabels[selectedMood]}`;
+            moodMessage.classList.add('show');
 
-        // Reset form
-        setTimeout(() => {
-            moodMessage.classList.remove('show');
-        }, 3000);
+            // Reset form
+            setTimeout(() => {
+                moodMessage.classList.remove('show');
+            }, 3000);
 
-        // Render updated history
-        await renderMoodHistory();
-    } catch (error) {
-        // Show error message
-        moodMessage.textContent = '❌ Failed to save mood. Please try again.';
-        moodMessage.classList.add('show');
-        setTimeout(() => {
-            moodMessage.classList.remove('show');
-        }, 3000);
-    }
-});
+            // Render updated history
+            await renderMoodHistory();
+        } catch (error) {
+            // Show error message
+            moodMessage.textContent = '❌ Failed to save mood. Please try again.';
+            moodMessage.classList.add('show');
+            setTimeout(() => {
+                moodMessage.classList.remove('show');
+            }, 3000);
+        }
+    });
+}
 
 // Render mood history
 async function renderMoodHistory() {
@@ -133,14 +139,14 @@ async function renderMoodHistory() {
     // Check authentication
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) {
-        historyContainer.innerHTML = '<div class="no-mood-history">Please log in to view your mood entries.</div>';
+        historyContainer.innerHTML = '<div class="no-entry-history">Please log in to view your mood entries.</div>';
         return;
     }
     
     const entries = await getMoodEntries();
 
     if (entries.length === 0) {
-        historyContainer.innerHTML = '<div class="no-mood-history">No mood entries yet. Start tracking your mood today!</div>';
+        historyContainer.innerHTML = '<div class="no-entry-history">No mood entries yet. Start tracking your mood today!</div>';
         return;
     }
 
@@ -157,13 +163,13 @@ async function renderMoodHistory() {
         };
 
         return `
-            <div class="mood-history-item">
-                <div class="mood-history-date">${formatDate(entry.date)}</div>
-                <div class="mood-history-mood">
-                    <span class="mood-history-mood-emoji">${entry.emoji}</span>
+            <div class="tracker-history-item">
+                <div class="tracker-history-date">${formatDate(entry.date)}</div>
+                <div class="tracker-history-value">
+                    <span class="tracker-history-emoji">${entry.emoji}</span>
                     <span>${moodLabels[entry.mood]}</span>
                 </div>
-                ${entry.note ? `<div class="mood-history-note">"${entry.note}"</div>` : ''}
+                ${entry.note ? `<div class="tracker-history-note">"${entry.note}"</div>` : ''}
             </div>
         `;
     }).join('');
@@ -171,6 +177,8 @@ async function renderMoodHistory() {
 
 // Load today's mood if already set
 async function loadTodaysMood() {
+    if (!hasMoodTrackerElements) return;
+
     const user = await window.userDataManager?.getCurrentUser();
     if (!user) return; // Don't load if not logged in
     
@@ -203,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Show message that user needs to log in
         const historyContainer = document.getElementById('moodHistory');
         if (historyContainer) {
-            historyContainer.innerHTML = '<div class="no-mood-history">Please <a href="login.html">log in</a> to track your mood.</div>';
+            historyContainer.innerHTML = '<div class="no-entry-history">Please <a href="login.html">log in</a> to track your mood.</div>';
         }
     }
 });

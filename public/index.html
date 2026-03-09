@@ -27,49 +27,49 @@
         </section>
 
         <!-- Mood Tracker Section -->
-        <section id="mood" class="section mood-section">
-            <div class="mood-header">
+        <section id="mood" class="section tracker-section">
+            <div class="tracker-header">
                 <h2>How are you feeling today?</h2>
-                <p class="mood-subtitle">Track your daily mood to understand your wellness patterns</p>
+                <p class="tracker-subtitle">Track your daily mood to understand your wellness patterns</p>
             </div>
 
-            <div class="mood-tracker-card">
-                <div class="mood-selector">
-                    <button class="mood-btn" data-mood="great" data-emoji="😊">
-                        <span class="mood-emoji" aria-hidden="true">😊</span>
-                        <span class="mood-label">Great</span>
+            <div class="tracker-card">
+                <div class="tracker-selector">
+                    <button class="tracker-btn" data-mood="great" data-emoji="😊">
+                        <span class="tracker-emoji" aria-hidden="true">😊</span>
+                        <span class="tracker-label">Great</span>
                     </button>
-                    <button class="mood-btn" data-mood="good" data-emoji="🙂">
-                        <span class="mood-emoji" aria-hidden="true">🙂</span>
-                        <span class="mood-label">Good</span>
+                    <button class="tracker-btn" data-mood="good" data-emoji="🙂">
+                        <span class="tracker-emoji" aria-hidden="true">🙂</span>
+                        <span class="tracker-label">Good</span>
                     </button>
-                    <button class="mood-btn" data-mood="okay" data-emoji="😐">
-                        <span class="mood-emoji" aria-hidden="true">😐</span>
-                        <span class="mood-label">Okay</span>
+                    <button class="tracker-btn" data-mood="okay" data-emoji="😐">
+                        <span class="tracker-emoji" aria-hidden="true">😐</span>
+                        <span class="tracker-label">Okay</span>
                     </button>
-                    <button class="mood-btn" data-mood="bad" data-emoji="😟">
-                        <span class="mood-emoji" aria-hidden="true">😟</span>
-                        <span class="mood-label">Not Good</span>
+                    <button class="tracker-btn" data-mood="bad" data-emoji="😟">
+                        <span class="tracker-emoji" aria-hidden="true">😟</span>
+                        <span class="tracker-label">Not Good</span>
                     </button>
-                    <button class="mood-btn" data-mood="terrible" data-emoji="😢">
-                        <span class="mood-emoji" aria-hidden="true">😢</span>
-                        <span class="mood-label">Terrible</span>
+                    <button class="tracker-btn" data-mood="terrible" data-emoji="😢">
+                        <span class="tracker-emoji" aria-hidden="true">😢</span>
+                        <span class="tracker-label">Terrible</span>
                     </button>
                 </div>
 
-                <div class="mood-notes-section">
-                    <label for="moodNotes" class="mood-notes-label">Add a note (optional)</label>
-                    <textarea id="moodNotes" class="mood-notes-input" placeholder="What's on your mind today?" rows="3"></textarea>
+                <div class="tracker-notes-section">
+                    <label for="moodNotes" class="tracker-notes-label">Add a note (optional)</label>
+                    <textarea id="moodNotes" class="tracker-notes-input" placeholder="What's on your mind today?" rows="3"></textarea>
                 </div>
 
-                <button id="saveMoodBtn" class="btn btn-primary btn-save-mood" disabled>Save Mood Entry</button>
+                <button id="saveMoodBtn" class="btn btn-primary btn-save-entry" disabled>Save Mood Entry</button>
 
-                <div id="mood-message" class="mood-message"></div>
+                <div id="mood-message" class="tracker-message"></div>
             </div>
 
-            <div class="mood-history-section">
+            <div class="tracker-history-section">
                 <h3>Recent Mood Entries</h3>
-                <div id="moodHistory" class="mood-history-grid">
+                <div id="moodHistory" class="tracker-history-grid">
                     <!-- Mood history will be inserted here -->
                 </div>
             </div>
